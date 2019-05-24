@@ -1,0 +1,26 @@
+<template>
+  <lightning-card title="findLWC" icon-name="custom:custom14">
+    <div class="slds-m-around_medium">
+      <p>Hello, {greeting}!</p>
+      <p>Email, {email}!</p>
+      <lightning-input label="Name" value={greeting} onchange={changeHandler}></lightning-input>
+      <lightning-input label="Email" value={email} onchange={changeEmailHandler}></lightning-input>
+
+      <div>test div 1</div>
+    </div>
+  </lightning-card>
+  <lightning-card title="findLWC" icon-name="custom:custom63">
+    <lightning-input type="search" onchange={handleKeyChange} class="slds-m-bottom_small" label="Search"
+      value={searchKey}></lightning-input>
+    <div class="slds-m-around_medium">
+      <template if:true={contacts.data}>
+        <template for:each={contacts.data} for:item="contact">
+          <p key={contact.Id}>{contact.Name}</p>
+        </template>
+      </template>
+      <template if:true={contacts.error}>
+        {contacts.error}
+      </template>
+    </div>
+  </lightning-card>
+</template>
