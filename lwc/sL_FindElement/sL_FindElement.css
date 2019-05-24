@@ -1,0 +1,36 @@
+.padding-left-class{
+    padding-left: 3rem;
+}
+
+.empty-search-class{
+    font-size: 13px;
+    padding-left: 2.3rem;
+}
+
+.hr-class{
+    margin: 0rem !important; 
+    margin-bottom: 1rem !important;
+}
+
+.cursor-style{
+    cursor:context-menu;
+}
+
+.record-class :hover{
+    background-color: aliceblue;
+}
+
+.itemId-class{
+    display: flex;
+    justify-content: space-between;
+}
+
+.recordId-class{
+    padding-top: 6px;
+}
+
+.limit-picklist-class{
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 3rem;
+}

@@ -1,0 +1,105 @@
+<template>
+  <lightning-card title="Find Element" icon-name="standard:search">
+
+    <div class="slds-grid slds-gutters">
+      <div class="slds-col slds-size_2-of-12 padding-left-class">
+        <lightning-combobox label="Select Element" value={pickListDefValue} options={elementTypes}
+          onchange={changePicklist}>
+        </lightning-combobox>
+      </div>
+      <div class="slds-col slds-size_4-of-12 padding-left-class">
+        <lightning-input type="search" label="Search" value={searchValue} onchange={changeSearchElement}>
+        </lightning-input>
+      </div>
+      <div class="slds-col slds-size_6-of-12 limit-picklist-class">
+        <lightning-combobox label="Limit of records" value={limitDefValue} placeholder="-Select-" options={limitList}
+          onchange={changeLimitPicklist}>
+        </lightning-combobox>
+      </div>
+    </div>
+    </br>
+
+    <hr class="hr-class">
+
+    <template if:true={showTable}>
+      <table
+        class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-table_striped cursor-style">
+        <thead>
+          <tr class="slds-text-title_caps">
+            <template for:each={headerItems} for:item='item' for:index='index'>
+              <th scope="col" key={item}>
+                <div>{item}</div>
+              </th>
+            </template>
+          </tr>
+        </thead>
+        <tbody>
+          <template for:each={lstElements} for:item="sobKey">
+            <tr key={sobKey.value.Id} class="record-class">
+              <th scope="col">
+                <div class="itemId-class">
+                  <a>
+                    <div data-id={sobKey.value.Id} onclick={navigateToRecordViewPage} class="recordId-class"
+                      title="open in current tab">
+                      {sobKey.value.Id}
+                    </div>
+                  </a>
+                  <div>
+                    <lightning-button-icon icon-name="utility:new_window" alternative-text="open in new tab"
+                      size="small" data-id2={sobKey.value.Id} onclick={navigateToRecordViewPageInNewTab}>
+                    </lightning-button-icon>
+                  </div>
+                </div>
+              </th>
+              <th scope="col">
+                <div if:true={sobKey.value.Name}>{sobKey.value.Name}</div>
+                <div if:false={sobKey.value.Name}>{sobKey.value.DeveloperName}</div>
+              </th>
+              <th scope="col">
+                {sobKey.value.LastModifiedDate}
+              </th>
+              <th scope="col">
+                <div class="itemId-class">
+                  <a>
+                    <div data-id={sobKey.lastModifiedUser.Id} onclick={navigateToRecordViewPageByUser}
+                      class="recordId-class">
+                      {sobKey.lastModifiedUser.Name}
+                    </div>
+                  </a>
+                  <div>
+                    <lightning-button-icon icon-name="utility:new_window" alternative-text="open in new tab"
+                      size="small" data-id2={sobKey.lastModifiedUser.Id} onclick={navigateToRecordViewPageInNewTab}>
+                    </lightning-button-icon>
+                  </div>
+                </div>
+              </th>
+              <th scope="col">
+                {sobKey.value.CreatedDate}
+              </th>
+              <th scope="col">
+                <div class="itemId-class">
+                  <a>
+                    <div data-id={sobKey.lastCrearedUser.Id} onclick={navigateToRecordViewPage} class="recordId-class">
+                      {sobKey.lastCrearedUser.Name}
+                    </div>
+                  </a>
+                  <lightning-button-icon icon-name="utility:new_window" alternative-text="open in new tab" size="small"
+                    data-id2={sobKey.lastCrearedUser.Id} onclick={navigateToRecordViewPageInNewTab}>
+                  </lightning-button-icon>
+                </div>
+              </th>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </template>
+
+    <template if:false={showTable}>
+      <div class='empty-search-class'>
+        Nothing to show due to your search. Try please change the conditions.
+      </div>
+    </template>
+
+  </lightning-card>
+
+</template>
