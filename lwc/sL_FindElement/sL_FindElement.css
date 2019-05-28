@@ -34,3 +34,22 @@
     justify-content: flex-end;
     padding-right: 3rem;
 }
+
+.empty-result-class{
+    display: flex;
+    justify-content: space-between;
+}
+
+.user-class{
+    margin: 0rem !important; 
+    margin-right: 1rem !important;
+    display: flex;
+}
+
+.padding-rigth-class{
+    padding-right: 1rem;
+}
+
+.user-id-class{
+    margin-top: -6px;
+}

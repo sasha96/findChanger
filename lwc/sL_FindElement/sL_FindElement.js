@@ -1,6 +1,8 @@
 import { LightningElement, track, wire } from "lwc";
 import searchElements from "@salesforce/apex/SL_ctrl_FindElement.searchElements";
 import { NavigationMixin } from 'lightning/navigation';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import strUserId from '@salesforce/user/Id';
 
 export default class SL_FindElement extends NavigationMixin(LightningElement) {
   @track selectedElement = "ApexClass";
@@ -13,6 +15,8 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
   @track searchKey = "";
 
   @track error;
+
+  @track userId = strUserId;
 
   @track headerItems = [
     "Record Id",
@@ -83,16 +87,26 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
       alert(error + "ERROR");
     } else if (data) {
       var returnedData = JSON.parse(data);
-
-      for (var key in returnedData) {
-        returnedData[key].record.LastModifiedDate = this.formatDate(new Date(returnedData[key].record.LastModifiedDate));
-        returnedData[key].record.CreatedDate = this.formatDate(new Date(returnedData[key].record.CreatedDate));
-        this.lstElements.push({
-          value: returnedData[key].record,
-          lastModifiedUser: returnedData[key].lastModifiedUser,
-          lastCrearedUser: returnedData[key].lastCrearedUser
+      if (returnedData.length > 0) {
+        for (var key in returnedData) {
+          returnedData[key].record.LastModifiedDate = this.formatDate(new Date(returnedData[key].record.LastModifiedDate));
+          returnedData[key].record.CreatedDate = this.formatDate(new Date(returnedData[key].record.CreatedDate));
+          this.lstElements.push({
+            value: returnedData[key].record,
+            lastModifiedUser: returnedData[key].lastModifiedUser,
+            lastCrearedUser: returnedData[key].lastCrearedUser
+          });
+        }
+      } else {
+        let elementLabel = this.elementTypes.filter(item => item.value === this.selectedElement)[0].label;
+        const toastEvnt = new ShowToastEvent({
+          title: 'Hint',
+          message: 'There are no ' + elementLabel + ' that contain name ' + this.searchKey,
+          variant: 'warning',
         });
+        this.dispatchEvent(toastEvnt);
       }
+
       this.showTable = this.lstElements.length > 0;
     }
   }

@@ -2,7 +2,7 @@
   <lightning-card title="Find Element" icon-name="standard:search">
 
     <div class="slds-grid slds-gutters">
-      <div class="slds-col slds-size_2-of-12 padding-left-class">
+      <div class="slds-col slds-size_3-of-12 padding-left-class">
         <lightning-combobox label="Select Element" value={pickListDefValue} options={elementTypes}
           onchange={changePicklist}>
         </lightning-combobox>
@@ -11,7 +11,7 @@
         <lightning-input type="search" label="Search" value={searchValue} onchange={changeSearchElement}>
         </lightning-input>
       </div>
-      <div class="slds-col slds-size_6-of-12 limit-picklist-class">
+      <div class="slds-col slds-size_5-of-12 limit-picklist-class">
         <lightning-combobox label="Limit of records" value={limitDefValue} placeholder="-Select-" options={limitList}
           onchange={changeLimitPicklist}>
         </lightning-combobox>
@@ -95,8 +95,20 @@
     </template>
 
     <template if:false={showTable}>
-      <div class='empty-search-class'>
-        Nothing to show due to your search. Try please change the conditions.
+      <div class="empty-result-class">
+        <div class='empty-search-class'>
+          Nothing to show due to your search. Please try to change the conditions.
+        </div>
+        <div class="slds-m-around_medium user-class">
+          <div class="padding-rigth-class">
+            Current user Id: {userId}
+          </div>
+          <div class="user-id-class">
+            <lightning-button-icon icon-name="utility:new_window" alternative-text="open in new tab" size="small"
+              data-id2={userId} onclick={navigateToRecordViewPageInNewTab}>
+            </lightning-button-icon>
+          </div>
+        </div>
       </div>
     </template>
 
