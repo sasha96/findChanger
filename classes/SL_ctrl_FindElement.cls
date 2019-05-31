@@ -30,6 +30,11 @@ public without sharing class SL_ctrl_FindElement {
         }
    }
 
+    @AuraEnabled
+    public static String searchElementsWithoutChacheable(String typeOfElement, String searchString, String limitOfRecords){
+        return searchElements(typeOfElement, searchString, limitOfRecords);
+    }
+
     public static List<ListRecordsWrapper> findNameOfRecord(String typeOfElement, List<sObject> lstSearchResultsAfterSOQL){
         
         Map<String, Schema.SObjectField> mapAllobjectFields = Schema.getGlobalDescribe().get(typeOfElement).getDescribe().fields.getMap();

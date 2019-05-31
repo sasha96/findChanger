@@ -1,5 +1,6 @@
 import { LightningElement, track, wire } from "lwc";
 import searchElements from "@salesforce/apex/SL_ctrl_FindElement.searchElements";
+import searchElementsWithoutChacheable from "@salesforce/apex/SL_ctrl_FindElement.searchElementsWithoutChacheable";
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import strUserId from '@salesforce/user/Id';
@@ -73,6 +74,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
 
   @track lstElements = [];
   @track showTable = false;
+  @track isDisableReload = false;
 
   @wire(searchElements, {
     typeOfElement: "$selectedElement",
@@ -80,35 +82,42 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
     limitOfRecords: "$limitOfRecordsValue"
   })
   wiredElents({ error, data }) {
+
     this.lstElements = [];
     this.showTable = false;
+    this.isDisableReload = false;
 
     if (error) {
       alert(error + "ERROR");
     } else if (data) {
       var returnedData = JSON.parse(data);
-      if (returnedData.length > 0) {
-        for (var key in returnedData) {
-          returnedData[key].record.LastModifiedDate = this.formatDate(new Date(returnedData[key].record.LastModifiedDate));
-          returnedData[key].record.CreatedDate = this.formatDate(new Date(returnedData[key].record.CreatedDate));
-          this.lstElements.push({
-            value: returnedData[key].record,
-            lastModifiedUser: returnedData[key].lastModifiedUser,
-            lastCrearedUser: returnedData[key].lastCrearedUser
-          });
-        }
-      } else {
-        let elementLabel = this.elementTypes.filter(item => item.value === this.selectedElement)[0].label;
-        const toastEvnt = new ShowToastEvent({
-          title: 'Hint',
-          message: 'There are no ' + elementLabel + ' that contain name ' + this.searchKey,
-          variant: 'warning',
-        });
-        this.dispatchEvent(toastEvnt);
-      }
-
-      this.showTable = this.lstElements.length > 0;
+      this.prepareDataForDisplaying(returnedData);
+    } else {
+      this.showError();
     }
+
+    this.showTable = this.lstElements.length > 0;
+
+    this.isDisableReload = !this.showTable;
+
+  }
+
+  refreshData(event) {
+
+    searchElementsWithoutChacheable({
+      typeOfElement: this.selectedElement,
+      searchString: this.searchKey,
+      limitOfRecords: this.limitOfRecordsValue
+    })
+      .then(result => {
+        this.lstElements = [];
+        var returnedData = JSON.parse(result);
+        this.prepareDataForDisplaying(returnedData);
+      })
+      .catch(error => {
+        this.showError();
+      });
+
   }
 
   changePicklist(event) {
@@ -170,8 +179,40 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
   }
 
   navigateToRecordViewPageInNewTab(event) {
+
     var recordId = event.target.dataset.id2;
     window.open('/' + recordId);
+
+  }
+
+  prepareDataForDisplaying(returnedData) {
+
+    if (returnedData.length > 0) {
+      for (var key in returnedData) {
+        returnedData[key].record.LastModifiedDate = this.formatDate(new Date(returnedData[key].record.LastModifiedDate));
+        returnedData[key].record.CreatedDate = this.formatDate(new Date(returnedData[key].record.CreatedDate));
+        this.lstElements.push({
+          value: returnedData[key].record,
+          lastModifiedUser: returnedData[key].lastModifiedUser,
+          lastCrearedUser: returnedData[key].lastCrearedUser
+        });
+      }
+    }
+
+  }
+
+  showError() {
+
+    if (this.searchKey.length > 0) {
+      let elementLabel = this.elementTypes.filter(item => item.value === this.selectedElement)[0].label;
+      const toastEvnt = new ShowToastEvent({
+        title: 'Hint',
+        message: 'There are no ' + elementLabel + ' that contain name ' + this.searchKey,
+        variant: 'warning',
+      });
+      this.dispatchEvent(toastEvnt);
+    }
+
   }
 
 }

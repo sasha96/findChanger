@@ -11,7 +11,14 @@
         <lightning-input type="search" label="Search" value={searchValue} onchange={changeSearchElement}>
         </lightning-input>
       </div>
-      <div class="slds-col slds-size_5-of-12 limit-picklist-class">
+
+      <div class="slds-col slds-size_1-of-12 reload-button-class">
+        <lightning-button-icon icon-name="standard:loop" alternative-text="refresh data" size="middle"
+          onclick={refreshData} disabled={isDisableReload}>
+        </lightning-button-icon>
+      </div>
+
+      <div class="slds-col slds-size_4-of-12 limit-picklist-class">
         <lightning-combobox label="Limit of records" value={limitDefValue} placeholder="-Select-" options={limitList}
           onchange={changeLimitPicklist}>
         </lightning-combobox>
