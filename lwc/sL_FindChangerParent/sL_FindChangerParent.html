@@ -1,0 +1,11 @@
+<template>
+    <lightning-card>
+        <c-find-changer currentpage={page} onrecordsload={handleRecordsLoad} pagesize={pagesize}>
+        </c-find-changer>
+        <div class="slds-m-around_medium">
+            <c-paginator-bottom onprevious={handlePrevious} onnext={handleNext} onfirst={handleFirst}
+                onlast={handleLast} currentpage={page} totalrecords={totalrecords} pagesize={pagesize}>
+            </c-paginator-bottom>
+        </div>
+    </lightning-card>
+</template>
