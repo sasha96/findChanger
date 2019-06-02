@@ -27,12 +27,13 @@ export default class SL_FindChangerParent extends LightningElement {
     this.page = this.totalPages;
   }
   handleRecordsLoad(event) {
+    this.page = event.detail.page;
     this.totalrecords = event.detail.recordsCount;
     this.pagesize = event.detail.pagesize;
     this.totalPages = Math.ceil(this.totalrecords / this.pagesize);
-  }    
-handlePageChange(event) {
-this.page = event.detail;
+  }
+  handlePageChange(event) {
+    this.page = event.detail;
+  }
 }
-}
- 
+

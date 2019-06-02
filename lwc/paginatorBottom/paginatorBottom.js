@@ -16,7 +16,10 @@ export default class PaginatorBottom extends LightningElement {
     }
     // getter  
     get showLastButton() {
-        if (Math.ceil(this.totalrecords / this.pagesize) === this.currentpage) {
+        debugger;
+        if (this.totalrecords === 0) {
+            return true;
+        } else if (Math.ceil(this.totalrecords / this.pagesize) === this.currentpage) {
             return true;
         }
         return false;
@@ -24,14 +27,25 @@ export default class PaginatorBottom extends LightningElement {
     //Fire events based on the button actions  
     handlePrevious() {
         this.dispatchEvent(new CustomEvent('previous'));
+        this.moveUpTheTopPage();
     }
     handleNext() {
         this.dispatchEvent(new CustomEvent('next'));
+        this.moveUpTheTopPage();
     }
     handleFirst() {
         this.dispatchEvent(new CustomEvent('first'));
+        this.moveUpTheTopPage();
     }
     handleLast() {
         this.dispatchEvent(new CustomEvent('last'));
+        this.moveUpTheTopPage();
+    }
+    moveUpTheTopPage() {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        });
     }
 }  

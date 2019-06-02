@@ -37,7 +37,7 @@
 
 .empty-result-class{
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 .user-class{
@@ -55,5 +55,15 @@
 }
 
 .reload-button-class{
+    padding-top: 1.5rem;
+}
+
+.info-pagination-class{
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1rem;
+}
+
+.user-class{
     padding-top: 1.5rem;
 }

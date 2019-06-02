@@ -6,33 +6,54 @@
 **/
 
 public without sharing class SL_ctrl_FindElement {
-   
-   @AuraEnabled(cacheable=true)
-   public static String searchElements(String typeOfElement, String searchString, String limitOfRecords){
-        
-        String REQUIRED_FIELDS = 'Id, LastModifiedDate, LastModifiedById, CreatedDate, CreatedById ';
 
-        if(searchString != ''){     
-            String soql = '';
+    @AuraEnabled(cacheable = true)  
+    public static Integer getRecordCount(String typeOfElement, String searchString) {  
+        
+        String query = 'SELECT COUNT() FROM ' + typeOfElement;  
+        if (searchString != null && searchString != '') {  
             if(typeOfElement == 'AuraDefinitionBundle'){
-                soql =  'SELECT DeveloperName, ' + REQUIRED_FIELDS + ' FROM ' +  typeOfElement + ' WHERE DeveloperName LIKE \'%'+ searchString  +'%\' ORDER BY DeveloperName LIMIT ' + limitOfRecords;
+                query += ' WHERE DeveloperName like \'%' + searchString + '%\' ';  
             }else{
-                soql = 'SELECT Name,' + REQUIRED_FIELDS + ' FROM ' +  typeOfElement + ' WHERE Name LIKE \'%'+ searchString  +'%\' ORDER BY Name LIMIT ' +limitOfRecords;
+                query += ' WHERE Name like \'%' + searchString + '%\' ';  
             }
-            
-            List<sObject> lstSearchResultsAfterSOQL = Database.query(soql);
-                        
-            List<ListRecordsWrapper> wrapper = findNameOfRecord(typeOfElement, lstSearchResultsAfterSOQL);
-            
-            return JSON.serialize(wrapper) ;
-        }else {
-            return '';
+        }  
+
+        return Database.countQuery(query);  
+    }  
+
+    @AuraEnabled(cacheable = true)  
+    public static String getRecordsList(String typeOfElement, Integer pagenumber, 
+                                        Integer numberOfRecords, Integer pageSize, String searchString) {  
+
+        String REQUIRED_FIELDS = 'Id, LastModifiedDate, LastModifiedById, CreatedDate, CreatedById ';
+        String query = '';
+
+        if(typeOfElement == 'AuraDefinitionBundle'){
+            query = 'SELECT DeveloperName, ' + REQUIRED_FIELDS + 
+                    ' FROM ' +  typeOfElement + 
+                    ' WHERE DeveloperName LIKE \'%'+ searchString  +'%\' ' + 
+                    ' ORDER BY DeveloperName';
+        }else{
+            query = 'SELECT Name,' + REQUIRED_FIELDS + 
+                    ' FROM ' +  typeOfElement + 
+                    ' WHERE Name LIKE \'%'+ searchString  +'%\' ' + 
+                    ' ORDER BY Name';
         }
-   }
+
+        query += ' limit ' + pageSize + ' offset ' + (pageSize * (pagenumber - 1));  
+
+        List<sObject> lstSearchResultsAfterSOQL = Database.query(query);
+                        
+        List<ListRecordsWrapper> wrapper = findNameOfRecord(typeOfElement, lstSearchResultsAfterSOQL);
+
+        return JSON.serialize(wrapper) ;
+    } 
 
     @AuraEnabled
-    public static String searchElementsWithoutChacheable(String typeOfElement, String searchString, String limitOfRecords){
-        return searchElements(typeOfElement, searchString, limitOfRecords);
+    public static String searchElementsWithoutChacheable(String typeOfElement, Integer pagenumber, 
+                                                            Integer numberOfRecords, Integer pageSize, String searchString){
+        return getRecordsList(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString);
     }
 
     public static List<ListRecordsWrapper> findNameOfRecord(String typeOfElement, List<sObject> lstSearchResultsAfterSOQL){
@@ -91,42 +112,5 @@ public without sharing class SL_ctrl_FindElement {
             this.lastCrearedUser = lastCrearedUser;
         }
 	}
-
-    @AuraEnabled(cacheable = true)  
-    public static Integer getRecordCount(String typeOfElement, String searchString) {  
-        
-        String query = 'SELECT COUNT() FROM ' + typeOfElement;  
-        if (searchString != null && searchString != '') {  
-            if(typeOfElement == 'AuraDefinitionBundle'){
-                query += ' WHERE DeveloperName like \'%' + searchString + '%\' ';  
-            }else{
-                query += ' WHERE Name like \'%' + searchString + '%\' ';  
-            }
-        }  
-
-        return Database.countQuery(query);  
-    }  
-
-    @AuraEnabled(cacheable = true)  
-    public static String getRecordsList(String typeOfElement, Integer pagenumber, 
-                                        Integer numberOfRecords, Integer pageSize, String searchString) {  
-
-        String REQUIRED_FIELDS = 'Id, LastModifiedDate, LastModifiedById, CreatedDate, CreatedById ';
-        String query = '';
-
-        if(typeOfElement == 'AuraDefinitionBundle'){
-            query =  'SELECT DeveloperName, ' + REQUIRED_FIELDS + ' FROM ' +  typeOfElement + ' WHERE DeveloperName LIKE \'%'+ searchString  +'%\' ';
-        }else{
-            query = 'SELECT Name,' + REQUIRED_FIELDS + ' FROM ' +  typeOfElement + ' WHERE Name LIKE \'%'+ searchString  +'%\' ';
-        }
-
-        query += ' limit ' + pageSize + ' offset ' + (pageSize * (pagenumber - 1));  
-
-        List<sObject> lstSearchResultsAfterSOQL = Database.query(query);
-                        
-        List<ListRecordsWrapper> wrapper = findNameOfRecord(typeOfElement, lstSearchResultsAfterSOQL);
-
-        return JSON.serialize(wrapper) ;
-    } 
 
 }

@@ -1,5 +1,4 @@
 import { LightningElement, track, wire, api } from "lwc";
-import searchElements from "@salesforce/apex/SL_ctrl_FindElement.searchElements";
 import searchElementsWithoutChacheable from "@salesforce/apex/SL_ctrl_FindElement.searchElementsWithoutChacheable";
 import getRecordCount from "@salesforce/apex/SL_ctrl_FindElement.getRecordCount";
 import getRecordsList from "@salesforce/apex/SL_ctrl_FindElement.getRecordsList";
@@ -9,26 +8,32 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import strUserId from '@salesforce/user/Id';
 
 export default class SL_FindElement extends NavigationMixin(LightningElement) {
+
+    @api currentpage;
+    @api pagesize = this.limitOfRecordsValue;
+    @api totalpages;
+    @api localCurrentPage = null;
+    @api isSearchChangeExecuted = false;
+
     @track selectedElement = "ApexClass";
     @track pickListDefValue = "ApexClass";
-
     @track limitOfRecordsValue = "10";
     @track limitDefValue = "10";
-
     @track searchValue = "";
     @track searchKey = "";
-
     @track error;
-
     @track userId = strUserId;
+    @track lstElements = [];
+    @track showTable = false;
+    @track isDisableReload = false;
 
     @track headerItems = [
         "Record Id",
         "Name",
         "Last Modified Date",
-        "Last Modified By Id",
+        "Last Modified By",
         "Created Date",
-        "Created By Id"
+        "Created By"
     ];
 
     @track
@@ -66,8 +71,16 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
             label: "10"
         },
         {
+            value: "15",
+            label: "15"
+        },
+        {
             value: "20",
             label: "20"
+        },
+        {
+            value: "30",
+            label: "30"
         },
         {
             value: "50",
@@ -75,42 +88,72 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
         }
     ];
 
-    @track lstElements = [];
-    @track showTable = false;
-    @track isDisableReload = false;
+    renderedCallback() {
 
-    /*@wire(searchElements, {
-        typeOfElement: "$selectedElement",
-        searchString: "$searchKey",
-        limitOfRecords: "$limitOfRecordsValue"
-    })
-    wiredElents({ error, data }) {
-
-        this.lstElements = [];
-        this.showTable = false;
-        this.isDisableReload = false;
-
-        if (error) {
-            alert(error + "ERROR");
-        } else if (data) {
-            var returnedData = JSON.parse(data);
-            this.prepareDataForDisplaying(returnedData);
-        } else {
-            this.showError();
+        if (this.isSearchChangeExecuted && (this.localCurrentPage === this.currentpage)) {
+            return;
         }
+        this.isSearchChangeExecuted = true;
+        this.localCurrentPage = this.currentpage;
+        getRecordCount({
+            typeOfElement: this.selectedElement,
+            searchString: this.searchKey
+        })
+            .then(recordsCount => {
+                this.totalrecords = recordsCount;
+                this.lstElements = [];
+                if (recordsCount !== 0 && !isNaN(recordsCount)) {
+                    this.pagesize = this.limitOfRecordsValue;
+                    this.totalpages = Math.ceil(recordsCount / this.pagesize);
+                    getRecordsList({
+                        typeOfElement: this.selectedElement,
+                        pagenumber: this.currentpage,
+                        numberOfRecords: recordsCount,
+                        pageSize: this.pagesize,
+                        searchString: this.searchKey
+                    })
+                        .then(result => {
+                            this.lstElements = [];
+                            var returnedData = JSON.parse(result);
+                            this.prepareDataForDisplaying(returnedData);
+                            this.showTable = this.lstElements.length > 0;
+                            this.isDisableReload = !this.showTable;
+                            this.error = undefined;
+                        })
+                        .catch(error => {
+                            this.error = error;
+                            this.lstElements = undefined;
+                        });
+                } else {
+                    this.lstElements = [];
+                    this.totalpages = 1;
+                    this.totalrecords = 0;
+                    this.showTable = false;
+                }
+                const event = new CustomEvent('recordsload', {
+                    detail: {
+                        page: this.currentpage,
+                        recordsCount: recordsCount,
+                        pagesize: this.limitOfRecordsValue
+                    }
+                });
+                this.dispatchEvent(event);
+            })
+            .catch(error => {
+                this.error = error;
+                this.totalrecords = undefined;
+            });
 
-        this.showTable = this.lstElements.length > 0;
-
-        this.isDisableReload = !this.showTable;
-
-    }*/
+    }
 
     refreshData(event) {
 
         searchElementsWithoutChacheable({
             typeOfElement: this.selectedElement,
-            searchString: this.searchKey,
-            limitOfRecords: this.limitOfRecordsValue
+            pagenumber: this.currentpage,
+            numberOfRecords: this.totalrecords,
+            pageSize: this.pagesize,
+            searchString: this.searchKey
         })
             .then(result => {
                 this.lstElements = [];
@@ -124,16 +167,16 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
     }
 
     changePicklist(event) {
+
         const select = event.detail.value;
         this.selectedElement = select;
         this.isSearchChangeExecuted = false;
         this.renderedCallback();
+
     }
 
     changeSearchElement(event) {
-        /* const searchKey = event.target.value;
-         this.searchKey = searchKey;
-        */
+
         if (this.searchKey !== event.target.value) {
             this.isSearchChangeExecuted = false;
             this.searchKey = event.target.value;
@@ -141,11 +184,14 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
         }
     }
 
-    changeLimitPicklist(event) {
+    changeLimitRecordOnPage(event) {
+
         const select = event.detail.value;
         this.limitOfRecordsValue = select;
         this.isSearchChangeExecuted = false;
+        this.currentpage = 1;
         this.renderedCallback();
+
     }
 
     formatDate(date) {
@@ -226,68 +272,6 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
             this.dispatchEvent(toastEvnt);
         }
 
-    }
-
-    @track accounts;
-    @api currentpage;
-    @api pagesize = this.limitOfRecordsValue;
-    totalpages;
-    localCurrentPage = null;
-    isSearchChangeExecuted = false;
-
-    renderedCallback() {
-        if (this.isSearchChangeExecuted && (this.localCurrentPage === this.currentpage)) {
-            return;
-        }
-        this.isSearchChangeExecuted = true;
-        this.localCurrentPage = this.currentpage;
-        getRecordCount({
-            typeOfElement: this.selectedElement,
-            searchString: this.searchKey
-        })
-            .then(recordsCount => {
-                this.totalrecords = recordsCount;
-                this.lstElements = [];
-                if (recordsCount !== 0 && !isNaN(recordsCount)) {
-                    this.pagesize = this.limitOfRecordsValue;
-                    this.totalpages = Math.ceil(recordsCount / this.pagesize);
-                    getRecordsList({
-                        typeOfElement: this.selectedElement,
-                        pagenumber: this.currentpage,
-                        numberOfRecords: recordsCount,
-                        pageSize: this.pagesize,
-                        searchString: this.searchKey
-                    })
-                        .then(result => {
-                            this.lstElements = [];
-                            var returnedData = JSON.parse(result);
-                            this.prepareDataForDisplaying(returnedData);
-                            this.showTable = this.lstElements.length > 0;
-                            this.isDisableReload = !this.showTable;
-                            this.error = undefined;
-                        })
-                        .catch(error => {
-                            this.error = error;
-                            this.lstElements = undefined;
-                        });
-                } else {
-                    this.lstElements = [];
-                    this.totalpages = 1;
-                    this.totalrecords = 0;
-                    this.showTable = false;
-                }
-                const event = new CustomEvent('recordsload', {
-                    detail: {
-                        recordsCount: recordsCount,
-                        pagesize: this.limitOfRecordsValue
-                    }
-                });
-                this.dispatchEvent(event);
-            })
-            .catch(error => {
-                this.error = error;
-                this.totalrecords = undefined;
-            });
     }
 
 }

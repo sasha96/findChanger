@@ -20,7 +20,7 @@
 
             <div class="slds-col slds-size_4-of-12 limit-picklist-class">
                 <lightning-combobox label="Limit of records" value={limitDefValue} placeholder="-Select-"
-                    options={limitList} onchange={changeLimitPicklist}>
+                    options={limitList} onchange={changeLimitRecordOnPage}>
                 </lightning-combobox>
             </div>
         </div>
@@ -109,8 +109,22 @@
         <template if:false={showTable}>
             <div class="empty-result-class">
                 <div class='empty-search-class'>
-                    Nothing to show due to your search. Please try to change the conditions.
+                    <b> Nothing to show due to your search. Please try to change the conditions.</b>
                 </div>
+            </div>
+        </template>
+
+        <div class="info-pagination-class">
+            <div>
+                <p class="slds-m-vertical_medium content">
+                    Total records: <b>{totalrecords} </b>
+                </p>
+                <p class="slds-m-vertical_medium content">
+                    Page <b>{currentpage}</b> of
+                    <b> {totalpages}</b>
+                </p>
+            </div>
+            <div class="user-class">
                 <div class="slds-m-around_medium user-class">
                     <div class="padding-rigth-class">
                         Current user Id: {userId}
@@ -122,14 +136,6 @@
                     </div>
                 </div>
             </div>
-        </template>
-
-        <div>
-            <p class="slds-m-vertical_medium content">
-                Total records: <b>{totalrecords} </b>
-                Page <b>{currentpage}</b> of
-                <b> {totalpages}</b>
-            </p>
         </div>
 
     </lightning-card>
