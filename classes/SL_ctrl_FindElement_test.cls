@@ -9,52 +9,79 @@
 public  class SL_ctrl_FindElement_test {
     
     @isTest
-    public static void searchElements_test() {
+    public static void getRecordsList_test() {
 
         String typeOfElement = 'ApexClass';
+        Integer pagenumber = 1;
+        Integer numberOfRecords = 10;
+        Integer pageSize = 10;
         String searchString = 'test'; 
-        String limitOfRecords = '5';
 
-        String expectedResultClasses = prepareExpectedREsult(typeOfElement, searchString, limitOfRecords); 
-        String returnedResultClasses = SL_ctrl_FindElement.searchElements(typeOfElement, searchString, limitOfRecords);
+        String expectedResultClasses = prepareExpectedREsult(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString); 
+        String returnedResultClasses = SL_ctrl_FindElement.getRecordsList(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString);
         
         System.assertEquals(expectedResultClasses, returnedResultClasses);
 
         typeOfElement = 'AuraDefinitionBundle';
         
-        String expectedResultAuraBundle = prepareExpectedREsult(typeOfElement, searchString, limitOfRecords);
-        String returnedResultAura = SL_ctrl_FindElement.searchElements(typeOfElement, searchString, limitOfRecords);
+        String expectedResultAuraBundle = prepareExpectedREsult(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString);
+        String returnedResultAura = SL_ctrl_FindElement.getRecordsList(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString);
 
         System.assertEquals(expectedResultAuraBundle, returnedResultAura);
         
-        String emptyResult = SL_ctrl_FindElement.searchElements('', '', '');
+        String searchElementsWithoutChacheable = SL_ctrl_FindElement.searchElementsWithoutChacheable(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString);
+        
+        System.assertEquals(searchElementsWithoutChacheable, expectedResultAuraBundle);
+    }
 
-        System.assertEquals(emptyResult, '');
+    @isTest
+    public static void test_getRecordCount(){
 
+        String typeOfElement = 'ApexClass';
+        String searchString = 'test'; 
+
+        String query = 'SELECT COUNT() FROM ' + typeOfElement + ' WHERE Name like \'%' + searchString + '%\' ';  
+      
+        Integer expectedReultClass = Database.countQuery(query);  
+        Integer returnedReultClass = SL_ctrl_FindElement.getRecordCount(typeOfElement, searchString);
+
+        System.assertEquals(expectedReultClass, returnedReultClass);
+
+        typeOfElement = 'AuraDefinitionBundle';
+
+        query = 'SELECT COUNT() FROM ' + typeOfElement + ' WHERE DeveloperName like \'%' + searchString + '%\' ';  
+      
+        Integer expectedReultAura = Database.countQuery(query);  
+        Integer returnedReultAura = SL_ctrl_FindElement.getRecordCount(typeOfElement, searchString);
+
+        System.assertEquals(expectedReultAura, returnedReultAura);
     }
 
 
-    private static String prepareExpectedREsult(String typeOfElement, String searchString, String limitOfRecords){
+    private static String prepareExpectedREsult(String typeOfElement, Integer pagenumber, 
+                                        Integer numberOfRecords, Integer pageSize, String searchString){
 
         String REQUIRED_FIELDS = 'Id, LastModifiedDate, LastModifiedById, CreatedDate, CreatedById ';
-   
-        String soql = '';
-        if(typeOfElement == 'AuraDefinitionBundle'){
-            soql =  'SELECT DeveloperName, ' + REQUIRED_FIELDS + ' FROM ' +  typeOfElement + ' WHERE DeveloperName LIKE \'%'+ searchString  +'%\' ORDER BY DeveloperName LIMIT ' + limitOfRecords;
-        }else{
-            soql = 'SELECT Name,' + REQUIRED_FIELDS + ' FROM ' +  typeOfElement + ' WHERE Name LIKE \'%'+ searchString  +'%\' ORDER BY Name LIMIT ' +limitOfRecords;
-        }
-        
-        List<sObject> lstSearchResultsAfterSOQL = Database.query(soql);
-        
-        map<Id, sObject> mapS = new Map<Id, SObject>();
+        String query = '';
 
-        for (Integer i = 0; i < lstSearchResultsAfterSOQL.size(); i++) {
-            mapS.put(lstSearchResultsAfterSOQL[i].Id, lstSearchResultsAfterSOQL[i]);
+        if(typeOfElement == 'AuraDefinitionBundle'){
+            query = 'SELECT DeveloperName, ' + REQUIRED_FIELDS + 
+                    ' FROM ' +  typeOfElement + 
+                    ' WHERE DeveloperName LIKE \'%'+ searchString  +'%\' ' + 
+                    ' ORDER BY DeveloperName';
+        }else{
+            query = 'SELECT Name,' + REQUIRED_FIELDS + 
+                    ' FROM ' +  typeOfElement + 
+                    ' WHERE Name LIKE \'%'+ searchString  +'%\' ' + 
+                    ' ORDER BY Name';
         }
+
+        query += ' limit ' + pageSize + ' offset ' + (pageSize * (pagenumber - 1));  
+
+        List<sObject> lstSearchResultsAfterSOQL = Database.query(query);
+                        
         List<SL_ctrl_FindElement.ListRecordsWrapper> wrapper = SL_ctrl_FindElement.findNameOfRecord(typeOfElement, lstSearchResultsAfterSOQL);
-        
+
         return JSON.serialize(wrapper) ;
-    
     }
 }
