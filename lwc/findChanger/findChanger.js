@@ -1,11 +1,12 @@
 import { LightningElement, track, wire, api } from "lwc";
+import { NavigationMixin } from 'lightning/navigation';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+
+import strUserId from '@salesforce/user/Id';
+
 import searchElementsWithoutChacheable from "@salesforce/apex/SL_ctrl_FindElement.searchElementsWithoutChacheable";
 import getRecordCount from "@salesforce/apex/SL_ctrl_FindElement.getRecordCount";
 import getRecordsList from "@salesforce/apex/SL_ctrl_FindElement.getRecordsList";
-
-import { NavigationMixin } from 'lightning/navigation';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import strUserId from '@salesforce/user/Id';
 
 export default class SL_FindElement extends NavigationMixin(LightningElement) {
 
@@ -18,7 +19,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
     @track selectedElement = "ApexClass";
     @track pickListDefValue = "ApexClass";
     @track limitOfRecordsValue = "10";
-    @track limitDefValue = "10";
+    @track recordOnPage = "10";
     @track searchValue = "";
     @track searchKey = "";
     @track error;
@@ -37,7 +38,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
     ];
 
     @track
-    elementTypes = [
+    typesList = [
         {
             value: "ApexClass",
             label: "Apex Class"
@@ -57,11 +58,40 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
         {
             value: "ApexTrigger",
             label: "Apex Trigger"
+        },
+        {
+            value: "ApexComponent",
+            label: "Apex Component"
+        },
+        {
+            value: "AssignmentRule",
+            label: "Assignment Rule"
+        },
+        {
+            value: "CustomPermission",
+            label: "Custom Permission"
+        },
+        {
+            value: "EmailTemplate",
+            label: "Email Template"
+        },
+        {
+            value: "Report",
+            label: "Report"
+        },
+        {
+            value: "Dashboard",
+            label: "Dashboard"
+        },
+        {
+            value: "CustomPermission",
+            label: "Custom Permissiion"
         }
+
     ];
 
     @track
-    limitList = [
+    recordLimitList = [
         {
             value: "5",
             label: "5"
@@ -168,9 +198,9 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
 
     changePicklist(event) {
 
-        const select = event.detail.value;
-        this.selectedElement = select;
+        this.selectedElement = event.detail.value;
         this.isSearchChangeExecuted = false;
+        this.currentpage = 1;
         this.renderedCallback();
 
     }
@@ -186,8 +216,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
 
     changeLimitRecordOnPage(event) {
 
-        const select = event.detail.value;
-        this.limitOfRecordsValue = select;
+        this.limitOfRecordsValue = event.detail.value;
         this.isSearchChangeExecuted = false;
         this.currentpage = 1;
         this.renderedCallback();
@@ -263,7 +292,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
     showError() {
 
         if (this.searchKey.length > 0) {
-            let elementLabel = this.elementTypes.filter(item => item.value === this.selectedElement)[0].label;
+            let elementLabel = this.typesList.filter(item => item.value === this.selectedElement)[0].label;
             const toastEvnt = new ShowToastEvent({
                 title: 'Hint',
                 message: 'There are no ' + elementLabel + ' that contain name ' + this.searchKey,

@@ -12,7 +12,9 @@ public without sharing class SL_ctrl_FindElement {
         
         String query = 'SELECT COUNT() FROM ' + typeOfElement;  
         if (searchString != null && searchString != '') {  
-            if(typeOfElement == 'AuraDefinitionBundle'){
+            if(typeOfElement == 'Dashboard'){
+                query += ' WHERE title like \'%' + searchString + '%\' '; 
+            }else if(typeOfElement == 'AuraDefinitionBundle' || typeOfElement == 'CustomPermission' || typeOfElement == 'CustomPermission'){
                 query += ' WHERE DeveloperName like \'%' + searchString + '%\' ';  
             }else{
                 query += ' WHERE Name like \'%' + searchString + '%\' ';  
@@ -29,7 +31,12 @@ public without sharing class SL_ctrl_FindElement {
         String REQUIRED_FIELDS = 'Id, LastModifiedDate, LastModifiedById, CreatedDate, CreatedById ';
         String query = '';
 
-        if(typeOfElement == 'AuraDefinitionBundle'){
+        if(typeOfElement == 'Dashboard'){
+            query = 'SELECT title, ' + REQUIRED_FIELDS + 
+                    ' FROM ' +  typeOfElement + 
+                    ' WHERE title LIKE \'%'+ searchString  +'%\' ' + 
+                    ' ORDER BY title';
+        }else if(typeOfElement == 'AuraDefinitionBundle' || typeOfElement == 'CustomPermission' || typeOfElement == 'CustomPermission'){
             query = 'SELECT DeveloperName, ' + REQUIRED_FIELDS + 
                     ' FROM ' +  typeOfElement + 
                     ' WHERE DeveloperName LIKE \'%'+ searchString  +'%\' ' + 
@@ -42,7 +49,7 @@ public without sharing class SL_ctrl_FindElement {
         }
 
         query += ' limit ' + pageSize + ' offset ' + (pageSize * (pagenumber - 1));  
-
+        
         List<sObject> lstSearchResultsAfterSOQL = Database.query(query);
                         
         List<ListRecordsWrapper> wrapper = findNameOfRecord(typeOfElement, lstSearchResultsAfterSOQL);

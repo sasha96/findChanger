@@ -36,4 +36,3 @@ export default class SL_FindChangerParent extends LightningElement {
     this.page = event.detail;
   }
 }
-

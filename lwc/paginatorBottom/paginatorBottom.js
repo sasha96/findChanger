@@ -48,4 +48,4 @@ export default class PaginatorBottom extends LightningElement {
             behavior: 'smooth'
         });
     }
-}  
+}

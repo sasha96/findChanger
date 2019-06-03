@@ -3,7 +3,7 @@
 
         <div class="slds-grid slds-gutters">
             <div class="slds-col slds-size_3-of-12 padding-left-class">
-                <lightning-combobox label="Select Element" value={pickListDefValue} options={elementTypes}
+                <lightning-combobox label="Select Element" value={pickListDefValue} options={typesList}
                     onchange={changePicklist}>
                 </lightning-combobox>
             </div>
@@ -19,8 +19,8 @@
             </div>
 
             <div class="slds-col slds-size_4-of-12 limit-picklist-class">
-                <lightning-combobox label="Limit of records" value={limitDefValue} placeholder="-Select-"
-                    options={limitList} onchange={changeLimitRecordOnPage}>
+                <lightning-combobox label="Records on page" value={recordOnPage} options={recordLimitList}
+                    onchange={changeLimitRecordOnPage}>
                 </lightning-combobox>
             </div>
         </div>
@@ -60,8 +60,9 @@
                                 </div>
                             </th>
                             <th scope="col">
+                                <div if:true={sobKey.value.title}>{sobKey.value.title}</div>
                                 <div if:true={sobKey.value.Name}>{sobKey.value.Name}</div>
-                                <div if:false={sobKey.value.Name}>{sobKey.value.DeveloperName}</div>
+                                <div if:true={sobKey.value.DeveloperName}>{sobKey.value.DeveloperName}</div>
                             </th>
                             <th scope="col">
                                 {sobKey.value.LastModifiedDate}
