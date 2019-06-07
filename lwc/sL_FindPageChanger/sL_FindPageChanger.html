@@ -1,0 +1,26 @@
+<template>
+    <lightning-card title="Find page's elements" icon-name="standard:search">
+
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col slds-size_3-of-12 padding-left-class">
+                <lightning-combobox label="Select Page" value={defvalue} options={_typesList} onchange={changePicklist}>
+                </lightning-combobox>
+            </div>
+        </div>
+        <hr class="hr-class">
+        <table
+            class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-table_striped cursor-style">
+            <thead>
+                <tr class="slds-text-title_caps">
+                    <template for:each={headerItems} for:item='item' for:index='index'>
+                        <th scope="col" key={item}>
+                            <div>{item}</div>
+                        </th>
+                    </template>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </lightning-card>
+</template>

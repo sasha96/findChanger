@@ -16,6 +16,13 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
     @api localCurrentPage = null;
     @api isSearchChangeExecuted = false;
 
+    @api showSobjectType;
+    @api showType;
+    @api showLabel;
+    @api showisCustom;
+    @api showTableEnumOrId;
+    @api showMasterLabel;
+
     @track selectedElement = "ApexClass";
     @track pickListDefValue = "ApexClass";
     @track limitOfRecordsValue = "10";
@@ -28,7 +35,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
     @track showTable = false;
     @track isDisableReload = false;
 
-    @track headerItems = [
+    @api headerItemsInitial = [
         "Record Id",
         "Name",
         "Last Modified Date",
@@ -36,6 +43,16 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
         "Created Date",
         "Created By"
     ];
+    @track _headerItems = [];
+
+    @api
+    get headerItems() {
+        return this._headerItems;
+    }
+
+    set headerItems(value) {
+        this._headerItems = value;
+    }
 
     @track
     typesList = [
@@ -84,11 +101,44 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
             label: "Dashboard"
         },
         {
-            value: "CustomPermission",
-            label: "Custom Permissiion"
+            value: "FlowDefinition",
+            label: "Flow And Process Builder"
+        },
+        {
+            value: "RecordType",
+            label: "Record Type"
+        },
+        {
+            value: "CustomTab",
+            label: "Custom Tab"
+        },
+        {
+            value: "PermissionSet",
+            label: "Pemission Set"
+        },
+        {
+            value: "Profile",
+            label: "Profile"
+        },
+        {
+            value: "FieldSet",
+            label: "Field Set"
+        },
+        {
+            value: "CustomField",
+            label: "Custom Field"
+        },
+        {
+            value: "ValidationRule",
+            label: "Validation Rule"
+        },
+        {
+            value: "WorkflowRule",
+            label: "Worflow Rule"
         }
 
     ];
+
 
     @track
     recordLimitList = [
@@ -125,6 +175,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
         }
         this.isSearchChangeExecuted = true;
         this.localCurrentPage = this.currentpage;
+
         getRecordCount({
             typeOfElement: this.selectedElement,
             searchString: this.searchKey
@@ -135,6 +186,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
                 if (recordsCount !== 0 && !isNaN(recordsCount)) {
                     this.pagesize = this.limitOfRecordsValue;
                     this.totalpages = Math.ceil(recordsCount / this.pagesize);
+
                     getRecordsList({
                         typeOfElement: this.selectedElement,
                         pagenumber: this.currentpage,
@@ -143,12 +195,55 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
                         searchString: this.searchKey
                     })
                         .then(result => {
+                            this.showSobjectType = false;
+                            this.showType = false;
+                            this.showLabel = false;
+                            this.showisCustom = false;
+                            this.showTableEnumOrId = false;
+                            this.showMasterLabel = false;
+
+                            var temporary = this.headerItemsInitial
+                            this._headerItems = [];
+                            for (var key in temporary) {
+                                this.headerItems.push(temporary[key]);
+                            }
                             this.lstElements = [];
+
                             var returnedData = JSON.parse(result);
+                            console.log(returnedData);
+
                             this.prepareDataForDisplaying(returnedData);
+
+                            if (returnedData[0].recordForMetadata) {
+                                if (returnedData[0].recordForMetadata.SobjectType) {
+                                    this.headerItems.push('Object Type');
+                                    this.showSobjectType = true;
+                                }
+                                if (returnedData[0].recordForMetadata.MasterLabel) {
+                                    this.headerItems.push('Master Label');
+                                    this.MasterLabel = true;
+                                }
+                                if (returnedData[0].recordForMetadata.Type) {
+                                    this.headerItems.push('Type');
+                                    this.showType = true;
+                                }
+                                if (returnedData[0].recordForMetadata.Label) {
+                                    this.headerItems.push('Label');
+                                    this.showLabel = true;
+                                }
+                                if (returnedData[0].recordForMetadata.isCustom) {
+                                    this.headerItems.push('Custom');
+                                    this.showisCustom = true;
+                                }
+                                if (returnedData[0].recordForMetadata.TableEnumOrId) {
+                                    this.headerItems.push('Table Enum Or Id');
+                                    this.showTableEnumOrId = true;
+                                }
+                            }
                             this.showTable = this.lstElements.length > 0;
                             this.isDisableReload = !this.showTable;
                             this.error = undefined;
+
                         })
                         .catch(error => {
                             this.error = error;
@@ -160,6 +255,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
                     this.totalrecords = 0;
                     this.showTable = false;
                 }
+
                 const event = new CustomEvent('recordsload', {
                     detail: {
                         page: this.currentpage,
@@ -168,6 +264,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
                     }
                 });
                 this.dispatchEvent(event);
+
             })
             .catch(error => {
                 this.error = error;
@@ -277,14 +374,25 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
 
         if (returnedData.length > 0) {
             for (var key in returnedData) {
-                returnedData[key].record.LastModifiedDate = this.formatDate(new Date(returnedData[key].record.LastModifiedDate));
-                returnedData[key].record.CreatedDate = this.formatDate(new Date(returnedData[key].record.CreatedDate));
-                this.lstElements.push({
-                    value: returnedData[key].record,
-                    lastModifiedUser: returnedData[key].lastModifiedUser,
-                    lastCrearedUser: returnedData[key].lastCrearedUser
-                });
+                if (returnedData[key].record === null || returnedData[key].record === undefined) {
+                    returnedData[key].recordForMetadata.LastModifiedDate = this.formatDate(new Date(returnedData[key].recordForMetadata.LastModifiedDate));
+                    returnedData[key].recordForMetadata.CreatedDate = this.formatDate(new Date(returnedData[key].recordForMetadata.CreatedDate));
+                    this.lstElements.push({
+                        value: returnedData[key].recordForMetadata,
+                        lastModifiedUser: returnedData[key].lastModifiedUser,
+                        lastCrearedUser: returnedData[key].lastCrearedUser
+                    });
+                } else {
+                    returnedData[key].record.LastModifiedDate = this.formatDate(new Date(returnedData[key].record.LastModifiedDate));
+                    returnedData[key].record.CreatedDate = this.formatDate(new Date(returnedData[key].record.CreatedDate));
+                    this.lstElements.push({
+                        value: returnedData[key].record,
+                        lastModifiedUser: returnedData[key].lastModifiedUser,
+                        lastCrearedUser: returnedData[key].lastCrearedUser
+                    });
+                }
             }
+
         }
 
     }

@@ -16,7 +16,7 @@ export default class PaginatorBottom extends LightningElement {
     }
     // getter  
     get showLastButton() {
-        debugger;
+
         if (this.totalrecords === 0) {
             return true;
         } else if (Math.ceil(this.totalrecords / this.pagesize) === this.currentpage) {

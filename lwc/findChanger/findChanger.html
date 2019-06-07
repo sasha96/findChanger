@@ -33,7 +33,7 @@
                 class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-table_striped cursor-style">
                 <thead>
                     <tr class="slds-text-title_caps">
-                        <template for:each={headerItems} for:item='item' for:index='index'>
+                        <template for:each={_headerItems} for:item='item' for:index='index'>
                             <th scope="col" key={item}>
                                 <div>{item}</div>
                             </th>
@@ -48,7 +48,7 @@
                                     <a>
                                         <div data-id={sobKey.value.Id} onclick={navigateToRecordViewPage}
                                             class="recordId-class" title="open in current tab">
-                                            {sobKey.value.Id}
+                                            <div if:true={sobKey.value.Id}>{sobKey.value.Id}</div>
                                         </div>
                                     </a>
                                     <div>
@@ -63,12 +63,13 @@
                                 <div if:true={sobKey.value.title}>{sobKey.value.title}</div>
                                 <div if:true={sobKey.value.Name}>{sobKey.value.Name}</div>
                                 <div if:true={sobKey.value.DeveloperName}>{sobKey.value.DeveloperName}</div>
+                                <div if:true={sobKey.value.ValidationName}>{sobKey.value.ValidationName}</div>
                             </th>
                             <th scope="col">
                                 {sobKey.value.LastModifiedDate}
                             </th>
                             <th scope="col">
-                                <div class="itemId-class">
+                                <div class="itemId-class" if:true={sobKey.lastModifiedUser}>
                                     <a>
                                         <div data-id={sobKey.lastModifiedUser.Id}
                                             onclick={navigateToRecordViewPageByUser} class="recordId-class">
@@ -88,7 +89,7 @@
                                 {sobKey.value.CreatedDate}
                             </th>
                             <th scope="col">
-                                <div class="itemId-class">
+                                <div class="itemId-class" if:true={sobKey.lastCrearedUser}>
                                     <a>
                                         <div data-id={sobKey.lastCrearedUser.Id} onclick={navigateToRecordViewPage}
                                             class="recordId-class">
@@ -99,6 +100,36 @@
                                         alternative-text="open in new tab" size="small"
                                         data-id2={sobKey.lastCrearedUser.Id} onclick={navigateToRecordViewPageInNewTab}>
                                     </lightning-button-icon>
+                                </div>
+                            </th>
+                            <th if:true={showSobjectType} scope="col">
+                                <div if:true={sobKey.value.SobjectType}>
+                                    {sobKey.value.SobjectType}
+                                </div>
+                            </th>
+                            <th if:true={showMasterLabel} scope="col">
+                                <div if:true={sobKey.value.MasterLabel}>
+                                    {sobKey.value.MasterLabel}
+                                </div>
+                            </th>
+                            <th if:true={showType} scope="col">
+                                <div if:true={sobKey.value.Type}>
+                                    {sobKey.value.Type}
+                                </div>
+                            </th>
+                            <th if:true={showLabel} scope="col">
+                                <div if:true={sobKey.value.Label}>
+                                    {sobKey.value.Label}
+                                </div>
+                            </th>
+                            <th if:true={showisCustom} scope="col">
+                                <div if:true={sobKey.value.isCustom}>
+                                    {sobKey.value.isCustom}
+                                </div>
+                            </th>
+                            <th if:true={showTableEnumOrId} scope="col">
+                                <div if:true={sobKey.value.TableEnumOrId}>
+                                    {sobKey.value.TableEnumOrId}
                                 </div>
                             </th>
                         </tr>
