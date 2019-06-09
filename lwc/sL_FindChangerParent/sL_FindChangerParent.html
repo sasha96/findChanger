@@ -1,11 +1,22 @@
 <template>
     <lightning-card>
-        <c-find-changer currentpage={page} onrecordsload={handleRecordsLoad} pagesize={pagesize}>
-        </c-find-changer>
-        <div class="slds-m-around_medium">
-            <c-paginator-bottom onprevious={handlePrevious} onnext={handleNext} onfirst={handleFirst}
-                onlast={handleLast} currentpage={page} totalrecords={totalrecords} pagesize={pagesize}>
-            </c-paginator-bottom>
-        </div>
+        <lightning-tabset>
+            <lightning-tab label="Find field changer" title="Can help you find all informations about desired files">
+                <c-find-changer currentpage={page} onrecordsload={handleRecordsLoad} pagesize={pagesize}
+                    onnavigatetorecordviewnewtab={navigateToRecordViewPageInNewTab}
+                    onnavigatetouser={navigateToRecordViewPageByUser}>
+                </c-find-changer>
+                <div class="slds-m-around_medium">
+                    <c-paginator-bottom onprevious={handlePrevious} onnext={handleNext} onfirst={handleFirst}
+                        onlast={handleLast} currentpage={page} totalrecords={totalrecords} pagesize={pagesize}>
+                    </c-paginator-bottom>
+                </div>
+            </lightning-tab>
+            <lightning-tab label="Find page changer" title="Can help you find all files that included in selected page">
+                <c-s-l_-find-page-changer onnavigatetorecordviewnewtab={navigateToRecordViewPageInNewTab}
+                    onnavigatetouser={navigateToRecordViewPageByUser}>
+                </c-s-l_-find-page-changer>
+            </lightning-tab>
+        </lightning-tabset>
     </lightning-card>
 </template>

@@ -1,6 +1,7 @@
 import { LightningElement, api } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
 
-export default class SL_FindChangerParent extends LightningElement {
+export default class SL_FindChangerParent extends NavigationMixin(LightningElement) {
   @api page = 1;
   @api totalrecords;
   @api _pagesize = 10;
@@ -35,5 +36,25 @@ export default class SL_FindChangerParent extends LightningElement {
   handlePageChange(event) {
     this.page = event.detail;
   }
-}
 
+  navigateToRecordViewPageByUser(event) {
+
+    this[NavigationMixin.Navigate]({
+      type: 'standard__recordPage',
+      attributes: {
+        recordId: event.detail.userId,
+        objectApiName: 'User',
+        actionName: 'view'
+      }
+    });
+
+  }
+
+  navigateToRecordViewPageInNewTab(event) {
+
+    var recordId = event.detail.recordId;
+    window.open('/' + recordId);
+
+  }
+
+}

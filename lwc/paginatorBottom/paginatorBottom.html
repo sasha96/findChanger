@@ -1,5 +1,5 @@
 <template>
-    <lightning-layout>
+    <lightning-layout style="justify-content:center; margin-top:-3rem;">
         <lightning-layout-item>
             <lightning-button label="First" icon-name="utility:chevronleft" onclick={handleFirst}
                 disabled={showFirstButton}></lightning-button>
@@ -8,7 +8,7 @@
             <lightning-button label="Previous" icon-name="utility:chevronleft" onclick={handlePrevious}
                 disabled={showFirstButton}></lightning-button>
         </lightning-layout-item>
-        <lightning-layout-item flexibility="grow"></lightning-layout-item>
+        <lightning-layout-item></lightning-layout-item>
         <lightning-layout-item>
             <lightning-button label="Next" icon-name="utility:chevronright" icon-position="right" onclick={handleNext}
                 disabled={showLastButton}></lightning-button>

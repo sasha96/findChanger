@@ -1,34 +1,14 @@
 <template>
-    <lightning-card title="Find Element" icon-name="standard:search">
+    <lightning-card title="Find page's elements" icon-name="standard:search">
 
         <div class="slds-grid slds-gutters">
             <div class="slds-col slds-size_3-of-12 padding-left-class">
-                <lightning-combobox label="Select Element" value={pickListDefValue} options={typesList}
-                    onchange={changePicklist}>
-                </lightning-combobox>
-            </div>
-            <div class="slds-col slds-size_4-of-12 padding-left-class">
-                <lightning-input type="search" label="Search" value={searchValue} onchange={changeSearchElement}>
-                </lightning-input>
-            </div>
-
-            <div class="slds-col slds-size_1-of-12 reload-button-class">
-                <lightning-button-icon icon-name="standard:loop" alternative-text="refresh data" size="middle"
-                    onclick={refreshData} disabled={isDisableReload}>
-                </lightning-button-icon>
-            </div>
-
-            <div class="slds-col slds-size_4-of-12 limit-picklist-class">
-                <lightning-combobox label="Records on page" value={recordOnPage} options={recordLimitList}
-                    onchange={changeLimitRecordOnPage}>
+                <lightning-combobox label="Select Page" value={defvalue} options={_typesList} onchange={changePicklist}>
                 </lightning-combobox>
             </div>
         </div>
-        </br>
 
         <hr class="hr-class">
-
-
 
         <templete if:false={showSpinner}>
             <template if:true={showTable}>
@@ -36,7 +16,7 @@
                     class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-table_striped cursor-style">
                     <thead>
                         <tr class="slds-text-title_caps">
-                            <template for:each={_headerItems} for:item='item' for:index='index'>
+                            <template for:each={headerItems} for:item='item' for:index='index'>
                                 <th scope="col" key={item}>
                                     <div>{item}</div>
                                 </th>
@@ -46,6 +26,9 @@
                     <tbody>
                         <template for:each={lstElements} for:item="sobKey">
                             <tr key={sobKey.value.Id} class="record-class">
+                                <th scope="col">
+                                    <div if:true={sobKey.typeOfElement}>{sobKey.typeOfElement}</div>
+                                </th>
                                 <th scope="col">
                                     <div class="itemId-class">
                                         <div class="recordId-class">
@@ -60,10 +43,8 @@
                                     </div>
                                 </th>
                                 <th scope="col">
-                                    <div if:true={sobKey.value.title}>{sobKey.value.title}</div>
                                     <div if:true={sobKey.value.Name}>{sobKey.value.Name}</div>
                                     <div if:true={sobKey.value.DeveloperName}>{sobKey.value.DeveloperName}</div>
-                                    <div if:true={sobKey.value.ValidationName}>{sobKey.value.ValidationName}</div>
                                 </th>
                                 <th scope="col">
                                     {sobKey.value.LastModifiedDate}
@@ -138,7 +119,6 @@
                     </tbody>
                 </table>
             </template>
-
             <template if:false={showTable}>
                 <div class="empty-result-class">
                     <div class='empty-search-class'>
@@ -153,30 +133,19 @@
             </div>
         </templete>
 
-        <div class="info-pagination-class">
-            <div>
-                <p class="slds-m-vertical_medium content">
-                    Total records: <b>{totalrecords} </b>
-                </p>
-                <p class="slds-m-vertical_medium content">
-                    Page <b>{currentpage}</b> of
-                    <b> {totalpages}</b>
-                </p>
-            </div>
-            <div class="user-class">
-                <div class="slds-m-around_medium user-class">
-                    <div class="padding-rigth-class">
-                        Current user Id: {userId}
-                    </div>
-                    <div class="user-id-class">
-                        <lightning-button-icon icon-name="utility:new_window" alternative-text="open in new tab"
-                            size="small" data-id2={userId} onclick={navigateToRecordViewPageInNewTab}>
-                        </lightning-button-icon>
-                    </div>
+        <hr class="bottom-hr-class">
+
+        <div class="user-class">
+            <div class="slds-m-around_medium user-class">
+                <div class="padding-rigth-class">
+                    Current user Id: {userId}
+                </div>
+                <div class="user-id-class">
+                    <lightning-button-icon icon-name="utility:new_window" alternative-text="open in new tab"
+                        size="small" data-id2={userId} onclick={navigateToRecordViewPageInNewTab}>
+                    </lightning-button-icon>
                 </div>
             </div>
         </div>
-
     </lightning-card>
-
 </template>
