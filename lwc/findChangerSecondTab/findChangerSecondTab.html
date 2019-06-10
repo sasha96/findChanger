@@ -31,9 +31,11 @@
                                 </th>
                                 <th scope="col">
                                     <div class="itemId-class">
-                                        <div class="recordId-class">
-                                            <div if:true={sobKey.value.Id}>{sobKey.value.Id}</div>
-                                        </div>
+                                        <a>
+                                            <div data-id={sobKey.value.Id} onclick={openRecord} class="recordId-class">
+                                                {sobKey.value.Id}
+                                            </div>
+                                        </a>
                                         <div>
                                             <lightning-button-icon icon-name="utility:new_window"
                                                 alternative-text="open in new tab" size="small"
@@ -119,6 +121,7 @@
                     </tbody>
                 </table>
             </template>
+
             <template if:false={showTable}>
                 <div class="empty-result-class">
                     <div class='empty-search-class'>
@@ -126,7 +129,9 @@
                     </div>
                 </div>
             </template>
+
         </templete>
+
         <templete if:true={showSpinner}>
             <div>
                 <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
@@ -147,5 +152,6 @@
                 </div>
             </div>
         </div>
+
     </lightning-card>
 </template>

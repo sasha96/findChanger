@@ -6,7 +6,7 @@ import strUserId from '@salesforce/user/Id';
 import getAllPages from "@salesforce/apex/SL_ctrl_FindElement.getAllPages";
 import getAllDataDueToPage from "@salesforce/apex/SL_ctrl_FindElement.getAllDataDueToPage";
 
-export default class SL_FindPageChanger extends NavigationMixin(LightningElement) {
+export default class FindChangerSecondTab extends NavigationMixin(LightningElement) {
 
     @track lstElements = [];
     @track defvalue = "";
@@ -127,6 +127,16 @@ export default class SL_FindPageChanger extends NavigationMixin(LightningElement
         this.dispatchEvent(new CustomEvent('navigatetorecordviewnewtab', {
             detail: {
                 recordId: event.target.dataset.id2
+            }
+        }));
+
+    }
+
+    openRecord(event) {
+
+        this.dispatchEvent(new CustomEvent('openrecord', {
+            detail: {
+                recordId: event.target.dataset.id
             }
         }));
 

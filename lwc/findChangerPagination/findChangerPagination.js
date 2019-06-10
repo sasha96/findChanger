@@ -1,5 +1,5 @@
 import { LightningElement, api } from 'lwc';
-export default class PaginatorBottom extends LightningElement {
+export default class FindChangerPagination extends LightningElement {
 
     @api totalrecords;
     @api currentpage;

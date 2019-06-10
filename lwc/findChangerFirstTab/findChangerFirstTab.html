@@ -28,8 +28,6 @@
 
         <hr class="hr-class">
 
-
-
         <templete if:false={showSpinner}>
             <template if:true={showTable}>
                 <table
@@ -48,15 +46,28 @@
                             <tr key={sobKey.value.Id} class="record-class">
                                 <th scope="col">
                                     <div class="itemId-class">
-                                        <div class="recordId-class">
-                                            <div if:true={sobKey.value.Id}>{sobKey.value.Id}</div>
-                                        </div>
-                                        <div>
-                                            <lightning-button-icon icon-name="utility:new_window"
-                                                alternative-text="open in new tab" size="small"
-                                                data-id2={sobKey.value.Id} onclick={navigateToRecordViewPageInNewTab}>
-                                            </lightning-button-icon>
-                                        </div>
+                                        <templete if:true={isOpenCurentTabId}>
+                                            <a>
+                                                <div data-id={sobKey.value.Id} onclick={openRecord}
+                                                    class="recordId-class">
+                                                    {sobKey.value.Id}
+                                                </div>
+                                            </a>
+                                        </templete>
+                                        <templete if:false={isOpenCurentTabId}>
+                                            <div class="recordId-class">
+                                                {sobKey.value.Id}
+                                            </div>
+                                        </templete>
+                                        <templete if:true={isOpenNewTabId}>
+                                            <div>
+                                                <lightning-button-icon icon-name="utility:new_window"
+                                                    alternative-text="open in new tab" size="small"
+                                                    data-id2={sobKey.value.Id}
+                                                    onclick={navigateToRecordViewPageInNewTab}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </templete>
                                     </div>
                                 </th>
                                 <th scope="col">

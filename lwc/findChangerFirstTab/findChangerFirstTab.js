@@ -8,7 +8,7 @@ import searchElementsWithoutChacheable from "@salesforce/apex/SL_ctrl_FindElemen
 import getRecordCount from "@salesforce/apex/SL_ctrl_FindElement.getRecordCount";
 import getRecordsList from "@salesforce/apex/SL_ctrl_FindElement.getRecordsList";
 
-export default class SL_FindElement extends NavigationMixin(LightningElement) {
+export default class FindChangerFirstTab extends NavigationMixin(LightningElement) {
 
     @api currentpage;
     @api pagesize = this.limitOfRecordsValue;
@@ -23,6 +23,9 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
     @api showTableEnumOrId;
     @api showMasterLabel;
     @api showSpinner = false;
+
+    @api isOpenCurentTabId = false;
+    @api isOpenNewTabId = false;
 
     @track selectedElement = "ApexClass";
     @track pickListDefValue = "ApexClass";
@@ -184,6 +187,8 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
         })
             .then(recordsCount => {
 
+                this.checkAvalibilityOpenRecords();
+
                 this.totalrecords = recordsCount;
                 this.lstElements = [];
                 if (recordsCount !== 0 && !isNaN(recordsCount)) {
@@ -198,6 +203,7 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
                         searchString: this.searchKey
                     })
                         .then(result => {
+
                             this.showSobjectType = false;
                             this.showType = false;
                             this.showLabel = false;
@@ -358,6 +364,16 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
 
     }
 
+    openRecord(event) {
+
+        this.dispatchEvent(new CustomEvent('openrecord', {
+            detail: {
+                recordId: event.target.dataset.id
+            }
+        }));
+
+    }
+
     prepareDataForDisplaying(returnedData) {
 
         if (returnedData.length > 0) {
@@ -395,6 +411,24 @@ export default class SL_FindElement extends NavigationMixin(LightningElement) {
                 variant: 'warning',
             });
             this.dispatchEvent(toastEvnt);
+        }
+
+    }
+
+    checkAvalibilityOpenRecords() {
+
+        if (this.selectedElement === 'AssignmentRule' || this.selectedElement === 'FlowDefinition' || this.selectedElement === 'RecordType'
+            || this.selectedElement === 'FieldSet' || this.selectedElement === 'CustomField' || this.selectedElement === 'ValidationRule') {
+            this.isOpenCurentTabId = false;
+        } else {
+            this.isOpenCurentTabId = true;
+        }
+
+        if (this.selectedElement === 'AssignmentRule' || this.selectedElement === 'RecordType') {
+            this.isOpenNewTabId = false;
+
+        } else {
+            this.isOpenNewTabId = true;
         }
 
     }
