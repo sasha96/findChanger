@@ -1,8 +1,10 @@
 <template>
     <lightning-card>
         <lightning-tabset>
+
             <lightning-tab label="Find field changer" title="Can help you find all informations about desired files">
-                <c-find-changer-first-tab currentpage={page} onrecordsload={handleRecordsLoad} pagesize={pagesize}
+                <c-find-changer-first-tab preventcallingcallback={iscallingback} currentpage={page}
+                    onrecordsload={handleRecordsLoad} pagesize={pagesize}
                     onnavigatetorecordviewnewtab={navigateToRecordViewPageInNewTab}
                     onnavigatetouser={navigateToRecordViewPageByUser} onopenrecord={openRecord}>
                 </c-find-changer-first-tab>
@@ -17,6 +19,7 @@
                     onnavigatetouser={navigateToRecordViewPageByUser} onopenrecord={openRecord}>
                 </c-find-changer-second-tab>
             </lightning-tab>
+
         </lightning-tabset>
     </lightning-card>
 </template>

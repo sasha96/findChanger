@@ -1,14 +1,17 @@
 <template>
+
+
     <lightning-card title="Find Element" icon-name="standard:search">
 
         <div class="slds-grid slds-gutters">
             <div class="slds-col slds-size_3-of-12 padding-left-class">
-                <lightning-combobox label="Select Element" value={pickListDefValue} options={typesList}
-                    onchange={changePicklist}>
+                <lightning-combobox label="Select Element" value={pickListDefValue} placeholder="Apex Class"
+                    options={typesList} onchange={changePicklist}>
                 </lightning-combobox>
             </div>
             <div class="slds-col slds-size_4-of-12 padding-left-class">
-                <lightning-input type="search" label="Search" value={searchValue} onchange={changeSearchElement}>
+                <lightning-input type="search" label="Search" value={searchValue} onchange={changeSearchElement}
+                    autocomplete="off">
                 </lightning-input>
             </div>
 
@@ -18,16 +21,33 @@
                 </lightning-button-icon>
             </div>
 
-            <div class="slds-col slds-size_4-of-12 limit-picklist-class">
+            <div class="slds-col slds-size_2-of-12 debug-mode-class">
+                <!-- <lightning-button label="Debug Mode" onclick={changeDebugMode}></lightning-button> -->
+                <div class="slds-form-element">
+                    <label class="slds-checkbox_toggle slds-grid">
+                        <span class="slds-form-element__label slds-m-bottom_none">Debug mode</span>
+                        <input type="checkbox" name="checkbox-toggle-16" value="checkbox-toggle-16"
+                            aria-describedby="checkbox-toggle-16" onclick={changeDebugMode} />
+                        <span id="checkbox-toggle-16" class="slds-checkbox_faux_container" aria-live="assertive">
+                            <span class="slds-checkbox_faux"></span>
+                            <span class="slds-checkbox_on">Enabled</span>
+                            <span class="slds-checkbox_off">Disabled</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="slds-col slds-size_2-of-12 limit-picklist-class">
                 <lightning-combobox label="Records on page" value={recordOnPage} options={recordLimitList}
-                    onchange={changeLimitRecordOnPage}>
+                    onchange={changeLimitRecordOnPage} class="spec-class2">
                 </lightning-combobox>
             </div>
         </div>
         </br>
 
         <hr class="hr-class">
-
+        <templete if:false={showSpinner}>
+        </templete>
         <templete if:false={showSpinner}>
             <template if:true={showTable}>
                 <table
@@ -35,8 +55,26 @@
                     <thead>
                         <tr class="slds-text-title_caps">
                             <template for:each={_headerItems} for:item='item' for:index='index'>
-                                <th scope="col" key={item}>
-                                    <div>{item}</div>
+                                <!-- <th scope="col" key={item}> -->
+                                <!-- <div>{item}</div> -->
+
+                                <!-- {item.name.nameOfHeader} -->
+
+                                <!-- </th> -->
+
+                                <th key={item} class="slds-is-sortable slds-text-title-caps" scope="col"
+                                    onclick={sortHelper}>
+                                    <a href="javascript:void(0);" class="slds-th__action slds-text-link-reset">
+                                        <span class="slds-assistive-text">Sort</span>
+                                        <span class="slds-truncate"
+                                            title={item.name.nameOfHeader}>{item.name.nameOfHeader}</span>
+                                        <template if:true={item.isArrow}>
+                                            &nbsp; &#9660;
+                                        </template>
+                                        <template if:false={item.isArrow}>
+                                            &nbsp; &#9650;
+                                        </template>
+                                    </a>
                                 </th>
                             </template>
                         </tr>
@@ -46,6 +84,13 @@
                             <tr key={sobKey.value.Id} class="record-class">
                                 <th scope="col">
                                     <div class="itemId-class">
+                                        <template if:true={showCheckers}>
+                                            <lightning-input type="checkbox" data-id={sobKey.value.Id}
+                                                data-name={sobKey.value.Name}
+                                                data-developername={sobKey.value.DeveloperName}
+                                                onchange={handleCheckboxChange} checked={sobKey.isChecked}>
+                                            </lightning-input>
+                                        </template>
                                         <templete if:true={isOpenCurentTabId}>
                                             <a>
                                                 <div data-id={sobKey.value.Id} onclick={openRecord}

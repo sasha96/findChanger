@@ -7,6 +7,12 @@ import strUserId from '@salesforce/user/Id';
 import searchElementsWithoutChacheable from "@salesforce/apex/SL_ctrl_FindElement.searchElementsWithoutChacheable";
 import getRecordCount from "@salesforce/apex/SL_ctrl_FindElement.getRecordCount";
 import getRecordsList from "@salesforce/apex/SL_ctrl_FindElement.getRecordsList";
+import getRecordOfMetadataForDebugg from "@salesforce/apex/SL_ctrl_FindElement.getRecordOfMetadataForDebugg";
+import changeRecordFromMetadata from "@salesforce/apex/SL_ctrl_FindElement.changeRecordFromMetadata";
+
+import { loadStyle } from 'lightning/platformResourceLoader';
+import findchanger from '@salesforce/resourceUrl/findchanger';
+
 
 export default class FindChangerFirstTab extends NavigationMixin(LightningElement) {
 
@@ -27,6 +33,11 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     @api isOpenCurentTabId = false;
     @api isOpenNewTabId = false;
 
+    /*  @api nubmerOfPage = 1;
+      @api opentab = 1;*/
+
+    @api showCheckers = false;
+
     @track selectedElement = "ApexClass";
     @track pickListDefValue = "ApexClass";
     @track limitOfRecordsValue = "10";
@@ -36,17 +47,52 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     @track error;
     @track userId = strUserId;
     @track lstElements = [];
+
+    get lstElements() {
+        return this.lstElements;
+    }
     @track showTable = false;
     @track isDisableReload = false;
 
+    /* @api headerItemsInitial = [
+         "Record Id",
+         "Name",
+         "Last Modified Date",
+         "Last Modified By",
+         "Created Date",
+         "Created By"
+     ];*/
+
     @api headerItemsInitial = [
-        "Record Id",
-        "Name",
-        "Last Modified Date",
-        "Last Modified By",
-        "Created Date",
-        "Created By"
-    ];
+
+        {
+            'nameOfHeader': 'Record Id',
+            'isArrow': false
+        },
+        {
+            'nameOfHeader': 'Name',
+            'isArrow': false
+        },
+        {
+            'nameOfHeader': 'Last Modified Date',
+            'isArrow': false
+        },
+        {
+            'nameOfHeader': 'Last Modified By',
+            'isArrow': false
+        },
+        {
+            'nameOfHeader': 'Created Date',
+            'isArrow': false
+        },
+        {
+            'nameOfHeader': 'Created By',
+            'isArrow': false
+        }
+    ]
+
+
+
     @track _headerItems = [];
 
     @api
@@ -55,11 +101,23 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     }
 
     set headerItems(value) {
-        this._headerItems = value;
+        //this._headerItems = value;
     }
 
-    @track
-    typesList = [
+    /*  set opentab(value) {
+          this.nubmerOfPage = value;
+          this.calcTab();
+      }
+      get opentab() {
+          return this.nubmerOfPage;
+      }
+     
+      calcTab() {
+          console.log(this.nubmerOfPage);
+          //this.loadData();
+      }*/
+
+    @track typesListFull = [
         {
             value: "ApexClass",
             label: "Apex Class"
@@ -139,9 +197,40 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         {
             value: "WorkflowRule",
             label: "Worflow Rule"
+        },
+        {
+            value: "FlexiPage",
+            label: "Flexi Page"
         }
 
     ];
+
+    @track typesListForDebugMode = [
+        {
+            value: "ApexClass",
+            label: "Apex Class"
+        },
+        {
+            value: "AuraDefinitionBundle",
+            label: "Aura Bundle"
+        },
+        {
+            value: "ApexPage",
+            label: "Apex Page"
+        },
+        {
+            value: "ApexTrigger",
+            label: "Apex Trigger"
+        },
+        {
+            value: "ApexComponent",
+            label: "Apex Component"
+        }
+
+
+    ];
+
+    @track typesList = this.typesListFull;
 
 
     @track
@@ -172,8 +261,51 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         }
     ];
 
-    renderedCallback() {
+    @track preventcallingcallback;
 
+    get preventcallingcallback() {
+        return this.preventcallingcallback;
+    }
+    set preventcallingcallback(value) {
+        //this.isPrevent = value;
+    }
+
+    renderedCallback() {
+        /* debugger;
+         if (this.showCheckers) {
+             this.returnDataDebug();
+         } else {*/
+
+        /*if (this.preventCallDebugmode === false) {
+            if (this.showCheckers) {
+                this.preventCallDebugmode = true;
+            } else {
+                this.preventCallDebugmode = false;
+            }
+    
+    
+            if (this.preventCallDebugmode) {
+                this.returnDataDebug();
+            } else {
+                this.returnDataAfterCallBack();
+            }
+        }else{
+    
+        }*/
+        //debugger;
+        /* if (this.showCheckers) {
+     
+             console.log(this.preventcallingcallback);
+             if (this.preventcallingcallback === false) {
+                 this.returnDataDebug();
+             }
+         } else {*/
+        this.returnDataAfterCallBack();
+        //}
+    }
+
+    returnDataAfterCallBack(event) {
+        console.log('11111111111111111111' + this.isSearchChangeExecuted);
         if (this.isSearchChangeExecuted && (this.localCurrentPage === this.currentpage)) {
             return;
         }
@@ -189,77 +321,113 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
                 this.checkAvalibilityOpenRecords();
 
+
                 this.totalrecords = recordsCount;
                 this.lstElements = [];
                 if (recordsCount !== 0 && !isNaN(recordsCount)) {
                     this.pagesize = this.limitOfRecordsValue;
                     this.totalpages = Math.ceil(recordsCount / this.pagesize);
 
-                    getRecordsList({
-                        typeOfElement: this.selectedElement,
-                        pagenumber: this.currentpage,
-                        numberOfRecords: recordsCount,
-                        pageSize: this.pagesize,
-                        searchString: this.searchKey
-                    })
-                        .then(result => {
-
-                            this.showSobjectType = false;
-                            this.showType = false;
-                            this.showLabel = false;
-                            this.showisCustom = false;
-                            this.showTableEnumOrId = false;
-                            this.showMasterLabel = false;
-
-                            var temporary = this.headerItemsInitial
-                            this._headerItems = [];
-                            for (var key in temporary) {
-                                this.headerItems.push(temporary[key]);
-                            }
-                            this.lstElements = [];
-
-                            var returnedData = JSON.parse(result);
-
-                            this.prepareDataForDisplaying(returnedData);
-
-                            this.showSpinner = false;
-
-                            if (returnedData[0].recordForMetadata) {
-                                if (returnedData[0].recordForMetadata.SobjectType) {
-                                    this.headerItems.push('Object Type');
-                                    this.showSobjectType = true;
-                                }
-                                if (returnedData[0].recordForMetadata.MasterLabel) {
-                                    this.headerItems.push('Master Label');
-                                    this.MasterLabel = true;
-                                }
-                                if (returnedData[0].recordForMetadata.Type) {
-                                    this.headerItems.push('Type');
-                                    this.showType = true;
-                                }
-                                if (returnedData[0].recordForMetadata.Label) {
-                                    this.headerItems.push('Label');
-                                    this.showLabel = true;
-                                }
-                                if (returnedData[0].recordForMetadata.isCustom) {
-                                    this.headerItems.push('Custom');
-                                    this.showisCustom = true;
-                                }
-                                if (returnedData[0].recordForMetadata.TableEnumOrId) {
-                                    this.headerItems.push('Table Enum Or Id');
-                                    this.showTableEnumOrId = true;
-                                }
-                            }
-                            this.showTable = this.lstElements.length > 0;
-                            this.isDisableReload = !this.showTable;
-                            this.error = undefined;
-
+                    if (this.showCheckers) {
+                        console.log(this.showCheckers);
+                        console.log(this.preventcallingcallback);
+                        this.returnDataDebug();
+                    } else {
+                        getRecordsList({
+                            typeOfElement: this.selectedElement,
+                            pagenumber: this.currentpage,
+                            numberOfRecords: recordsCount,
+                            pageSize: this.pagesize,
+                            searchString: this.searchKey
                         })
-                        .catch(error => {
-                            this.error = error;
-                            this.lstElements = undefined;
-                            this.showSpinner = false;
-                        });
+                            .then(result => {
+
+                                this.showSobjectType = false;
+                                this.showType = false;
+                                this.showLabel = false;
+                                this.showisCustom = false;
+                                this.showTableEnumOrId = false;
+                                this.showMasterLabel = false;
+
+                                var temporary = this.headerItemsInitial
+                                this._headerItems = [];
+                                for (var key in temporary) {
+                                    //this.headerItems.push(temporary[key]);
+                                    this.headerItems.push({
+                                        name: temporary[key],
+                                        isArrow: false
+                                    });
+                                }
+                                this.lstElements = [];
+
+                                var returnedData = JSON.parse(result);
+
+                                this.prepareDataForDisplaying(returnedData);
+
+                                this.showSpinner = false;
+
+                                if (returnedData[0].recordForMetadata) {
+                                    if (returnedData[0].recordForMetadata.SobjectType) {
+                                        //this.headerItems.push('Object Type');
+                                        this.headerItems.push({
+                                            nameOfHeader: 'Object Type',
+                                            isArrow: false
+                                        });
+                                        this.showSobjectType = true;
+                                    }
+                                    if (returnedData[0].recordForMetadata.MasterLabel) {
+                                        //this.headerItems.push('Master Label'); 
+                                        this.headerItems.push({
+                                            nameOfHeader: 'Master Label',
+                                            isArrow: false
+                                        });
+                                        this.MasterLabel = true;
+                                    }
+                                    if (returnedData[0].recordForMetadata.Type) {
+                                        //this.headerItems.push('Type'); 
+                                        this.headerItems.push({
+                                            nameOfHeader: 'Type',
+                                            isArrow: false
+                                        });
+                                        this.showType = true;
+                                    }
+                                    if (returnedData[0].recordForMetadata.Label) {
+                                        // this.headerItems.push('Label'); 
+                                        this.headerItems.push({
+                                            nameOfHeader: 'Label',
+                                            isArrow: false
+                                        });
+                                        this.showLabel = true;
+                                    }
+                                    if (returnedData[0].recordForMetadata.isCustom) {
+                                        //this.headerItems.push('Custom'); 
+                                        this.headerItems.push({
+                                            nameOfHeader: 'Custom',
+                                            isArrow: false
+                                        });
+                                        this.showisCustom = true;
+                                    }
+                                    if (returnedData[0].recordForMetadata.TableEnumOrId) {
+                                        //this.headerItems.push('Table Enum Or Id'); 
+                                        this.headerItems.push({
+                                            nameOfHeader: 'Table Enum Or Id',
+                                            isArrow: false
+                                        });
+                                        this.showTableEnumOrId = true;
+                                    }
+                                }
+
+                                this.showTable = this.lstElements.length > 0;
+                                this.isDisableReload = !this.showTable;
+                                this.error = undefined;
+
+                            })
+                            .catch(error => {
+                                this.error = error;
+                                this.lstElements = undefined;
+                                this.showSpinner = false;
+                            });
+                    }
                 } else {
                     this.lstElements = [];
                     this.totalpages = 1;
@@ -282,7 +450,26 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                 this.error = error;
                 this.totalrecords = undefined;
             });
+    }
 
+    refreshData(event) {
+        this.showSpinner = true;
+        searchElementsWithoutChacheable({
+            typeOfElement: this.selectedElement,
+            pagenumber: this.currentpage,
+            numberOfRecords: this.totalrecords,
+            pageSize: this.pagesize,
+            searchString: this.searchKey
+        })
+            .then(result => {
+                this.lstElements = [];
+                var returnedData = JSON.parse(result);
+                this.prepareDataForDisplaying(returnedData);
+            })
+            .catch(error => {
+                this.showError();
+            });
+        this.showSpinner = false;
     }
 
     refreshData(event) {
@@ -310,7 +497,11 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         this.selectedElement = event.detail.value;
         this.isSearchChangeExecuted = false;
         this.currentpage = 1;
-        this.renderedCallback();
+        if (this.showCheckers) {
+            this.returnDataDebug();
+        } else {
+            this.returnDataAfterCallBack();
+        }
 
     }
 
@@ -328,7 +519,11 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         this.limitOfRecordsValue = event.detail.value;
         this.isSearchChangeExecuted = false;
         this.currentpage = 1;
-        this.renderedCallback();
+        if (this.showCheckers) {
+            this.returnDataDebug();
+        } else {
+            this.returnDataAfterCallBack();
+        }
 
     }
 
@@ -392,12 +587,14 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                     this.lstElements.push({
                         value: returnedData[key].record,
                         lastModifiedUser: returnedData[key].lastModifiedUser,
-                        lastCrearedUser: returnedData[key].lastCrearedUser
+                        lastCrearedUser: returnedData[key].lastCrearedUser,
+                        isChecked: returnedData[key].isChecked
                     });
                 }
             }
 
         }
+        // console.log("!!!!!!!!!!" + this.lstElements);
 
     }
 
@@ -433,4 +630,230 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    handleCheckboxChange(event) {
+
+        var selectedId = event.target.dataset.id;
+        var selectedName = event.target.dataset.name;
+        var selectedDeveloperName = event.target.dataset.developername;
+
+        var typeOfElement = this.selectedElement;
+        var lstOfElements = this.listForDebugging;
+
+        //
+        debugger;
+        var isAlreadyInArray = false;
+        var listOfRecords = this.lstElements;
+
+        // console.log(selectedId + 'selectedId');
+        for (var t in listOfRecords) {
+            //console.log(listOfRecords[t].value.Id + '~!!');
+            if (listOfRecords[t].value.Id === selectedId) {
+                isAlreadyInArray = listOfRecords[t].isChecked;
+            }
+        }
+        var nameOFElement = '';
+        if (selectedName !== '' && selectedName !== undefined) {
+            nameOFElement = selectedName;
+        } else {
+            nameOFElement = selectedDeveloperName;
+        }
+        if (isAlreadyInArray) {
+            this.removeNewElementInCustomMetadata(event, selectedId, nameOFElement);
+        } else {
+            this.addNewElementInCustomMetadata(event, selectedId, nameOFElement);
+        }
+
+        //
+        /*for (var element in lstOfElements) {
+            if (typeOfElement === lstOfElements[element].label) {
+    
+                var arrayOfIds = lstOfElements[element].elements;
+                arrayOfIds = arrayOfIds.filter(function (el) {
+                    return el != null && el != undefined;
+                });
+                var isAlreadyInArray = false;
+                if (arrayOfIds) {
+                    if (arrayOfIds.length > 0) {
+                        for (var i = 0; i < arrayOfIds.length; i++) {
+                            if (arrayOfIds[i].id === selectedId) {
+                                isAlreadyInArray = true;
+                                //break;
+                                delete arrayOfIds[i].id;
+    
+    
+                            }
+                        }
+                    }
+                }
+                debugger;
+                if (isAlreadyInArray) {
+                    this.removeNewElementInCustomMetadata(event, selectedId, nameOFElement);
+                } else {
+                    lstOfElements[element].elements.push(
+                        { 'id': selectedId });
+                    var nameOFElement = '';
+                    if (selectedName !== '' && selectedName !== undefined) {
+                        nameOFElement = selectedName;
+                    } else {
+                        nameOFElement = selectedDeveloperName;
+                    }
+                    this.addNewElementInCustomMetadata(event, selectedId, nameOFElement);
+                    //arrayOfIds[arrayOfIds.length] = selectedId;
+                }
+                // console.log(arrayOfIds);
+    
+    
+                //break;
+            }
+        }
+        for (var item in lstOfElements) {
+    
+    
+            var arrayOfIds = lstOfElements[item].elements;
+            arrayOfIds = arrayOfIds.filter(function (el) {
+                return el != null && el.id != undefined;
+            });
+    
+            if (arrayOfIds) {
+    
+                if (arrayOfIds.length > 0) {
+                    // console.log('lstOfElements        ' + lstOfElements[item].label);
+                    for (var i = 0; i < arrayOfIds.length; i++) {
+                        //    console.log('---------' + arrayOfIds[i].id);
+                    }
+                }
+            }
+        }
+        console.log('****************** ' + this.lstElements);*/
+    }
+
+    addNewElementInCustomMetadata(event, selectedId, nameOFElement) {
+        changeRecordFromMetadata({
+            typeOfElement: this.selectedElement,
+            isNewValue: true,
+            value: nameOFElement,
+        })
+            .then(result => {
+                console.log('here1');
+                //var returnedData = JSON.parse(result);
+                //console.log(returnedData);
+
+
+            })
+            .catch(error => {
+                console.log('here2');
+                this.showError();
+            });
+        console.log('here 3');
+    }
+
+    removeNewElementInCustomMetadata(event, selectedId, nameOFElement) {
+        changeRecordFromMetadata({
+            typeOfElement: this.selectedElement,
+            isNewValue: false,
+            value: nameOFElement,
+        })
+            .then(result => {
+                console.log('here1');
+                //var returnedData = JSON.parse(result);
+                //console.log(returnedData);
+
+
+            })
+            .catch(error => {
+                console.log('here2');
+                this.showError();
+            });
+        console.log('here 3');
+    }
+
+    changeDebugMode(event) {
+        //console.log('here debug mode');
+        this.showCheckers = !this.showCheckers;
+
+        if (this.showCheckers) {
+            this.selectedElement = "ApexClass";
+            this.returnDataDebug();
+        } else {
+            this.typesList = this.typesListFull;
+        }
+
+    }
+
+    returnDataDebug(event) {
+        //debugger;
+        this.showSpinner = true;
+        this.typesList = this.typesListForDebugMode;
+        //  this.isSearchChangeExecuted = false;
+        this.pickListDefValue = "ApexClass";
+        //  this.returnDataAfterCallBack();
+        this.pagesize = this.limitOfRecordsValue;
+
+        getRecordOfMetadataForDebugg({
+            typeOfElement: this.selectedElement,
+            pagenumber: this.currentpage,
+            numberOfRecords: this.totalrecords,
+            pageSize: this.pagesize,
+            searchString: this.searchKey
+        })
+            .then(result => {
+                // console.log('here1');
+                var returnedData = JSON.parse(result);
+                // console.log(returnedData);
+                this.lstElements = [];
+                this.prepareDataForDisplaying(returnedData);
+                setTimeout(() => {
+                    this.showSpinner = false;
+                }, 1000);
+
+            })
+            .catch(error => {
+                // console.log('here2');
+                this.showError();
+            });
+
+        //console.log('here3');
+        // this.preventcallingcallback = true;
+    }
+
+    @track listForDebugging = [
+        {
+            label: "ApexClass",
+            elements: []
+        },
+        {
+            label: "AuraDefinitionBundle",
+            elements: []
+        },
+        {
+            label: "ApexPage",
+            elements: []
+        },
+        {
+            label: "ApexTrigger",
+            elements: []
+        },
+        {
+            label: "ApexComponent",
+            elements: []
+        }
+    ];
+
+    set listForDebugging(value) {
+        // this.listForDebugging = value;
+    }
+
+    get listForDebugging() {
+        return listForDebugging;
+    }
+
+    @api test3 = false;
+
+    /*  @api isAsk = false;
+      @api isArrow = false;*/
+    sortHelper(event) {
+        debugger;
+        //this.isArrow = !this.isArrow;
+
+    }
 }

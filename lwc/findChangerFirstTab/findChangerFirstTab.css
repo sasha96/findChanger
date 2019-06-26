@@ -64,3 +64,8 @@
     justify-content: space-between;
     padding-left: 1rem;
 }
+
+.debug-mode-class{
+    padding-top: 1.5rem;
+    padding-left: 4rem;
+}
