@@ -21,7 +21,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     @api totalpages;
     @api localCurrentPage = null;
     @api isSearchChangeExecuted = false;
-
     @api showSobjectType;
     @api showType;
     @api showLabel;
@@ -29,13 +28,8 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     @api showTableEnumOrId;
     @api showMasterLabel;
     @api showSpinner = false;
-
     @api isOpenCurentTabId = false;
     @api isOpenNewTabId = false;
-
-    /*  @api nubmerOfPage = 1;
-      @api opentab = 1;*/
-
     @api showCheckers = false;
 
     @track selectedElement = "ApexClass";
@@ -47,75 +41,78 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     @track error;
     @track userId = strUserId;
     @track lstElements = [];
-
-    get lstElements() {
-        return this.lstElements;
-    }
     @track showTable = false;
     @track isDisableReload = false;
+    @track typesList = this.typesListFull;
+    @track preventcallingcallback;
 
-    /* @api headerItemsInitial = [
-         "Record Id",
-         "Name",
-         "Last Modified Date",
-         "Last Modified By",
-         "Created Date",
-         "Created By"
-     ];*/
+    picvlistSortValues = [
+        {
+            value: true
+        },
+        {
+            value: false
+        }
+    ];
 
     @api headerItemsInitial = [
 
         {
             'nameOfHeader': 'Record Id',
-            'isArrow': false
+            'isArrow': this.picvlistSortValues[0],
+            'isNtSelected': true
         },
         {
             'nameOfHeader': 'Name',
-            'isArrow': false
+            'isArrow': this.picvlistSortValues[1],
+            'isNtSelected': true
         },
         {
             'nameOfHeader': 'Last Modified Date',
-            'isArrow': false
+            'isArrow': this.picvlistSortValues[1],
+            'isNtSelected': true
         },
         {
             'nameOfHeader': 'Last Modified By',
-            'isArrow': false
+            'isArrow': this.picvlistSortValues[1],
+            'isNtSelected': true
         },
         {
             'nameOfHeader': 'Created Date',
-            'isArrow': false
+            'isArrow': this.picvlistSortValues[1],
+            'isNtSelected': true
         },
         {
             'nameOfHeader': 'Created By',
-            'isArrow': false
+            'isArrow': this.picvlistSortValues[1],
+            'isNtSelected': true
         }
     ]
 
-
-
     @track _headerItems = [];
 
-    @api
-    get headerItems() {
-        return this._headerItems;
-    }
-
-    set headerItems(value) {
-        //this._headerItems = value;
-    }
-
-    /*  set opentab(value) {
-          this.nubmerOfPage = value;
-          this.calcTab();
-      }
-      get opentab() {
-          return this.nubmerOfPage;
-      }
-     
-      calcTab() {
-          console.log(this.nubmerOfPage);
-          //this.loadData();
-      }*/
+    @track listForDebugging = [
+        {
+            label: "ApexClass",
+            elements: []
+        },
+        {
+            label: "AuraDefinitionBundle",
+            elements: []
+        },
+        {
+            label: "ApexPage",
+            elements: []
+        },
+        {
+            label: "ApexTrigger",
+            elements: []
+        },
+        {
+            label: "ApexComponent",
+            elements: []
+        }
+    ];
 
     @track typesListFull = [
         {
@@ -230,9 +227,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     ];
 
-    @track typesList = this.typesListFull;
-
-
     @track
     recordLimitList = [
         {
@@ -261,54 +255,33 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         }
     ];
 
-    @track preventcallingcallback;
+    @api
+    get headerItems() {
+        return this._headerItems;
+    }
+
+    get lstElements() {
+        return this.lstElements;
+    }
+
+    get listForDebugging() {
+        return listForDebugging;
+    }
 
     get preventcallingcallback() {
         return this.preventcallingcallback;
     }
-    set preventcallingcallback(value) {
-        //this.isPrevent = value;
-    }
 
     renderedCallback() {
-        /* debugger;
-         if (this.showCheckers) {
-             this.returnDataDebug();
-         } else {*/
-
-        /*if (this.preventCallDebugmode === false) {
-            if (this.showCheckers) {
-                this.preventCallDebugmode = true;
-            } else {
-                this.preventCallDebugmode = false;
-            }
-    
-    
-            if (this.preventCallDebugmode) {
-                this.returnDataDebug();
-            } else {
-                this.returnDataAfterCallBack();
-            }
-        }else{
-    
-        }*/
-        //debugger;
-        /* if (this.showCheckers) {
-     
-             console.log(this.preventcallingcallback);
-             if (this.preventcallingcallback === false) {
-                 this.returnDataDebug();
-             }
-         } else {*/
         this.returnDataAfterCallBack();
-        //}
     }
 
     returnDataAfterCallBack(event) {
-        console.log('11111111111111111111' + this.isSearchChangeExecuted);
+
         if (this.isSearchChangeExecuted && (this.localCurrentPage === this.currentpage)) {
             return;
         }
+
         this.isSearchChangeExecuted = true;
         this.localCurrentPage = this.currentpage;
         this.showSpinner = true;
@@ -321,7 +294,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
                 this.checkAvalibilityOpenRecords();
 
-
                 this.totalrecords = recordsCount;
                 this.lstElements = [];
                 if (recordsCount !== 0 && !isNaN(recordsCount)) {
@@ -329,8 +301,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                     this.totalpages = Math.ceil(recordsCount / this.pagesize);
 
                     if (this.showCheckers) {
-                        console.log(this.showCheckers);
-                        console.log(this.preventcallingcallback);
                         this.returnDataDebug();
                     } else {
                         getRecordsList({
@@ -352,11 +322,19 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                                 var temporary = this.headerItemsInitial
                                 this._headerItems = [];
                                 for (var key in temporary) {
-                                    //this.headerItems.push(temporary[key]);
-                                    this.headerItems.push({
-                                        name: temporary[key],
-                                        isArrow: false
-                                    });
+                                    if (temporary[key].nameOfHeader === 'Name' || temporary[key].nameOfHeader === 'DeveloperName') {
+                                        this.headerItems.push({
+                                            name: temporary[key],
+                                            isArrow: this.picvlistSortValues[0],
+                                            'isNtSelected': false
+                                        });
+                                    } else {
+                                        this.headerItems.push({
+                                            name: temporary[key],
+                                            isArrow: this.picvlistSortValues[1],
+                                            'isNtSelected': true
+                                        });
+                                    }
                                 }
                                 this.lstElements = [];
 
@@ -368,50 +346,50 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
                                 if (returnedData[0].recordForMetadata) {
                                     if (returnedData[0].recordForMetadata.SobjectType) {
-                                        //this.headerItems.push('Object Type');
                                         this.headerItems.push({
                                             nameOfHeader: 'Object Type',
-                                            isArrow: false
+                                            isArrow: this.picvlistSortValues[2],
+                                            'isNtSelected': true
                                         });
                                         this.showSobjectType = true;
                                     }
                                     if (returnedData[0].recordForMetadata.MasterLabel) {
-                                        //this.headerItems.push('Master Label'); 
                                         this.headerItems.push({
                                             nameOfHeader: 'Master Label',
-                                            isArrow: false
+                                            isArrow: this.picvlistSortValues[2],
+                                            'isNtSelected': true
                                         });
                                         this.MasterLabel = true;
                                     }
                                     if (returnedData[0].recordForMetadata.Type) {
-                                        //this.headerItems.push('Type'); 
                                         this.headerItems.push({
                                             nameOfHeader: 'Type',
-                                            isArrow: false
+                                            isArrow: this.picvlistSortValues[2],
+                                            'isNtSelected': true
                                         });
                                         this.showType = true;
                                     }
                                     if (returnedData[0].recordForMetadata.Label) {
-                                        // this.headerItems.push('Label'); 
                                         this.headerItems.push({
                                             nameOfHeader: 'Label',
-                                            isArrow: false
+                                            isArrow: this.picvlistSortValues[2],
+                                            'isNtSelected': true
                                         });
                                         this.showLabel = true;
                                     }
                                     if (returnedData[0].recordForMetadata.isCustom) {
-                                        //this.headerItems.push('Custom'); 
                                         this.headerItems.push({
                                             nameOfHeader: 'Custom',
-                                            isArrow: false
+                                            isArrow: this.picvlistSortValues[2],
+                                            'isNtSelected': true
                                         });
                                         this.showisCustom = true;
                                     }
                                     if (returnedData[0].recordForMetadata.TableEnumOrId) {
-                                        //this.headerItems.push('Table Enum Or Id'); 
                                         this.headerItems.push({
                                             nameOfHeader: 'Table Enum Or Id',
-                                            isArrow: false
+                                            isArrow: this.picvlistSortValues[2],
+                                            'isNtSelected': true
                                         });
                                         this.showTableEnumOrId = true;
                                     }
@@ -450,9 +428,11 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                 this.error = error;
                 this.totalrecords = undefined;
             });
+
     }
 
     refreshData(event) {
+
         this.showSpinner = true;
         searchElementsWithoutChacheable({
             typeOfElement: this.selectedElement,
@@ -470,9 +450,11 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                 this.showError();
             });
         this.showSpinner = false;
+
     }
 
     refreshData(event) {
+
         this.showSpinner = true;
         searchElementsWithoutChacheable({
             typeOfElement: this.selectedElement,
@@ -490,6 +472,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                 this.showError();
             });
         this.showSpinner = false;
+
     }
 
     changePicklist(event) {
@@ -592,9 +575,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                     });
                 }
             }
-
         }
-        // console.log("!!!!!!!!!!" + this.lstElements);
 
     }
 
@@ -635,18 +616,10 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         var selectedId = event.target.dataset.id;
         var selectedName = event.target.dataset.name;
         var selectedDeveloperName = event.target.dataset.developername;
-
-        var typeOfElement = this.selectedElement;
-        var lstOfElements = this.listForDebugging;
-
-        //
-        debugger;
         var isAlreadyInArray = false;
         var listOfRecords = this.lstElements;
 
-        // console.log(selectedId + 'selectedId');
         for (var t in listOfRecords) {
-            //console.log(listOfRecords[t].value.Id + '~!!');
             if (listOfRecords[t].value.Id === selectedId) {
                 isAlreadyInArray = listOfRecords[t].isChecked;
             }
@@ -663,112 +636,64 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             this.addNewElementInCustomMetadata(event, selectedId, nameOFElement);
         }
 
-        //
-        /*for (var element in lstOfElements) {
-            if (typeOfElement === lstOfElements[element].label) {
-    
-                var arrayOfIds = lstOfElements[element].elements;
-                arrayOfIds = arrayOfIds.filter(function (el) {
-                    return el != null && el != undefined;
-                });
-                var isAlreadyInArray = false;
-                if (arrayOfIds) {
-                    if (arrayOfIds.length > 0) {
-                        for (var i = 0; i < arrayOfIds.length; i++) {
-                            if (arrayOfIds[i].id === selectedId) {
-                                isAlreadyInArray = true;
-                                //break;
-                                delete arrayOfIds[i].id;
-    
-    
-                            }
-                        }
-                    }
-                }
-                debugger;
-                if (isAlreadyInArray) {
-                    this.removeNewElementInCustomMetadata(event, selectedId, nameOFElement);
-                } else {
-                    lstOfElements[element].elements.push(
-                        { 'id': selectedId });
-                    var nameOFElement = '';
-                    if (selectedName !== '' && selectedName !== undefined) {
-                        nameOFElement = selectedName;
-                    } else {
-                        nameOFElement = selectedDeveloperName;
-                    }
-                    this.addNewElementInCustomMetadata(event, selectedId, nameOFElement);
-                    //arrayOfIds[arrayOfIds.length] = selectedId;
-                }
-                // console.log(arrayOfIds);
-    
-    
-                //break;
-            }
-        }
-        for (var item in lstOfElements) {
-    
-    
-            var arrayOfIds = lstOfElements[item].elements;
-            arrayOfIds = arrayOfIds.filter(function (el) {
-                return el != null && el.id != undefined;
-            });
-    
-            if (arrayOfIds) {
-    
-                if (arrayOfIds.length > 0) {
-                    // console.log('lstOfElements        ' + lstOfElements[item].label);
-                    for (var i = 0; i < arrayOfIds.length; i++) {
-                        //    console.log('---------' + arrayOfIds[i].id);
-                    }
-                }
-            }
-        }
-        console.log('****************** ' + this.lstElements);*/
     }
 
     addNewElementInCustomMetadata(event, selectedId, nameOFElement) {
+
         changeRecordFromMetadata({
             typeOfElement: this.selectedElement,
             isNewValue: true,
             value: nameOFElement,
         })
             .then(result => {
-                console.log('here1');
-                //var returnedData = JSON.parse(result);
-                //console.log(returnedData);
-
-
+                const toastEvnt = new ShowToastEvent({
+                    title: 'success',
+                    message: 'You successfully added ' + nameOFElement + ' to custom metadata',
+                    variant: 'success',
+                    mode: 'dismissable'
+                });
+                this.dispatchEvent(toastEvnt);
             })
             .catch(error => {
-                console.log('here2');
-                this.showError();
+                const toastEvnt = new ShowToastEvent({
+                    title: 'error',
+                    message: 'Error happend when you tried to add element from custom metadata',
+                    variant: 'error',
+                });
+                this.dispatchEvent(toastEvnt);
             });
-        console.log('here 3');
+
     }
 
     removeNewElementInCustomMetadata(event, selectedId, nameOFElement) {
+
         changeRecordFromMetadata({
             typeOfElement: this.selectedElement,
             isNewValue: false,
             value: nameOFElement,
         })
             .then(result => {
-                console.log('here1');
-                //var returnedData = JSON.parse(result);
-                //console.log(returnedData);
-
-
+                const toastEvnt = new ShowToastEvent({
+                    title: 'success',
+                    message: 'You successfully removed ' + nameOFElement + ' from custom metadata',
+                    variant: 'success',
+                    mode: 'dismissable'
+                });
+                this.dispatchEvent(toastEvnt);
             })
             .catch(error => {
-                console.log('here2');
-                this.showError();
+                const toastEvnt = new ShowToastEvent({
+                    title: 'error',
+                    message: 'Error happend when you tried to remove element from custom metadata',
+                    variant: 'error',
+                });
+                this.dispatchEvent(toastEvnt);
             });
-        console.log('here 3');
+
     }
 
     changeDebugMode(event) {
-        //console.log('here debug mode');
+
         this.showCheckers = !this.showCheckers;
 
         if (this.showCheckers) {
@@ -781,12 +706,10 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     }
 
     returnDataDebug(event) {
-        //debugger;
+
         this.showSpinner = true;
         this.typesList = this.typesListForDebugMode;
-        //  this.isSearchChangeExecuted = false;
         this.pickListDefValue = "ApexClass";
-        //  this.returnDataAfterCallBack();
         this.pagesize = this.limitOfRecordsValue;
 
         getRecordOfMetadataForDebugg({
@@ -797,9 +720,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             searchString: this.searchKey
         })
             .then(result => {
-                // console.log('here1');
                 var returnedData = JSON.parse(result);
-                // console.log(returnedData);
                 this.lstElements = [];
                 this.prepareDataForDisplaying(returnedData);
                 setTimeout(() => {
@@ -808,52 +729,32 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
             })
             .catch(error => {
-                // console.log('here2');
                 this.showError();
             });
 
-        //console.log('here3');
-        // this.preventcallingcallback = true;
     }
 
-    @track listForDebugging = [
-        {
-            label: "ApexClass",
-            elements: []
-        },
-        {
-            label: "AuraDefinitionBundle",
-            elements: []
-        },
-        {
-            label: "ApexPage",
-            elements: []
-        },
-        {
-            label: "ApexTrigger",
-            elements: []
-        },
-        {
-            label: "ApexComponent",
-            elements: []
-        }
-    ];
-
-    set listForDebugging(value) {
-        // this.listForDebugging = value;
-    }
-
-    get listForDebugging() {
-        return listForDebugging;
-    }
-
-    @api test3 = false;
-
-    /*  @api isAsk = false;
-      @api isArrow = false;*/
     sortHelper(event) {
-        debugger;
-        //this.isArrow = !this.isArrow;
+
+        var headerItems = this.headerItems;
+        var selectedItem = event.target.dataset.name;
+
+        for (let i = 0; i < headerItems.length; i++) {
+            if (headerItems[i].name.nameOfHeader === selectedItem) {
+                if (headerItems[i].isNtSelected === true) {
+                    for (let j = 0; j < headerItems.length; j++) {
+                        headerItems[j].isNtSelected = true;
+                    }
+                }
+                headerItems[i].isNtSelected = false;
+
+                if (headerItems[i].isArrow.value === false) {
+                    headerItems[i].isArrow.value = true;
+                } else {
+                    headerItems[i].isArrow.value = false;
+                }
+            }
+        }
 
     }
 }
