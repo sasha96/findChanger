@@ -56,25 +56,25 @@
                             <template for:each={_headerItems} for:item='item' for:index='index'>
 
                                 <th key={item} class="slds-is-sortable slds-text-title-caps slds-text-link--reset"
-                                    data-name={item.name.nameOfHeader} onclick={sortHelper} scope="col">
+                                    data-name={item.nameOfHeaderApi} onclick={sortHelper} scope="col">
 
                                     <template if:false={item.isNtSelected}>
-                                        <span class="slds-truncate selected-item-class" title={item.name.nameOfHeader}
-                                            data-name={item.name.nameOfHeader}>
-                                            {item.name.nameOfHeader}
+                                        <span class="slds-truncate selected-item-class" title={item.nameOfHeader}
+                                            data-name={item.nameOfHeaderApi}>
+                                            {item.nameOfHeader}
                                         </span>
                                     </template>
                                     <template if:true={item.isNtSelected}>
-                                        <span class="slds-truncate" title={item.name.nameOfHeader}
-                                            data-name={item.name.nameOfHeader}>
-                                            {item.name.nameOfHeader}
+                                        <span class="slds-truncate" title={item.nameOfHeader}
+                                            data-name={item.nameOfHeaderApi}>
+                                            {item.nameOfHeader}
                                         </span>
                                     </template>
                                     <template if:false={item.isNtSelected}>
-                                        <template if:true={item.isArrow.value}>
+                                        <template if:false={item.isArrow}>
                                             &nbsp; &#9660;
                                         </template>
-                                        <template if:false={item.isArrow.value}>
+                                        <template if:true={item.isArrow}>
                                             &nbsp; &#9650;
                                         </template>
                                     </template>

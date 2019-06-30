@@ -12,6 +12,7 @@ import changeRecordFromMetadata from "@salesforce/apex/SL_ctrl_FindElement.chang
 
 import { loadStyle } from 'lightning/platformResourceLoader';
 import findchanger from '@salesforce/resourceUrl/findchanger';
+import SystemModstamp from "@salesforce/schema/CaseContactRole.SystemModstamp";
 
 
 export default class FindChangerFirstTab extends NavigationMixin(LightningElement) {
@@ -46,46 +47,43 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     @track typesList = this.typesListFull;
     @track preventcallingcallback;
 
-    picvlistSortValues = [
-        {
-            value: true
-        },
-        {
-            value: false
-        }
-    ];
-
     @api headerItemsInitial = [
 
         {
             'nameOfHeader': 'Record Id',
-            'isArrow': this.picvlistSortValues[0],
-            'isNtSelected': true
+            'isArrow': false,
+            'isNtSelected': true,
+            'nameOfHeaderApi': 'Id'
         },
         {
             'nameOfHeader': 'Name',
-            'isArrow': this.picvlistSortValues[1],
-            'isNtSelected': true
+            'isArrow': true,
+            'isNtSelected': false,
+            'nameOfHeaderApi': 'Name',
         },
         {
             'nameOfHeader': 'Last Modified Date',
-            'isArrow': this.picvlistSortValues[1],
-            'isNtSelected': true
+            'isArrow': false,
+            'isNtSelected': true,
+            'nameOfHeaderApi': 'LastModifiedDate',
         },
         {
             'nameOfHeader': 'Last Modified By',
-            'isArrow': this.picvlistSortValues[1],
-            'isNtSelected': true
+            'isArrow': false,
+            'isNtSelected': true,
+            'nameOfHeaderApi': 'LastModifiedById',
         },
         {
             'nameOfHeader': 'Created Date',
-            'isArrow': this.picvlistSortValues[1],
-            'isNtSelected': true
+            'isArrow': false,
+            'isNtSelected': true,
+            'nameOfHeaderApi': 'CreatedDate',
         },
         {
             'nameOfHeader': 'Created By',
-            'isArrow': this.picvlistSortValues[1],
-            'isNtSelected': true
+            'isArrow': false,
+            'isNtSelected': true,
+            'nameOfHeaderApi': 'CreatedById',
         }
     ]
 
@@ -223,8 +221,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             value: "ApexComponent",
             label: "Apex Component"
         }
-
-
     ];
 
     @track
@@ -260,6 +256,11 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         return this._headerItems;
     }
 
+
+    set headerItems(value) {
+        this._headerItems = value;
+    }
+
     get lstElements() {
         return this.lstElements;
     }
@@ -281,7 +282,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         if (this.isSearchChangeExecuted && (this.localCurrentPage === this.currentpage)) {
             return;
         }
-
         this.isSearchChangeExecuted = true;
         this.localCurrentPage = this.currentpage;
         this.showSpinner = true;
@@ -303,15 +303,18 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                     if (this.showCheckers) {
                         this.returnDataDebug();
                     } else {
+                        this.typesList = this.typesListFull;
+
                         getRecordsList({
                             typeOfElement: this.selectedElement,
                             pagenumber: this.currentpage,
                             numberOfRecords: recordsCount,
                             pageSize: this.pagesize,
-                            searchString: this.searchKey
+                            searchString: this.searchKey,
+                            selectedItem: this.selectedItem,
+                            isAsc: this.isAsc
                         })
                             .then(result => {
-
                                 this.showSobjectType = false;
                                 this.showType = false;
                                 this.showLabel = false;
@@ -319,23 +322,17 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                                 this.showTableEnumOrId = false;
                                 this.showMasterLabel = false;
 
-                                var temporary = this.headerItemsInitial
+                                var temporary = this.headerItemsInitial;
                                 this._headerItems = [];
                                 for (var key in temporary) {
-                                    if (temporary[key].nameOfHeader === 'Name' || temporary[key].nameOfHeader === 'DeveloperName') {
-                                        this.headerItems.push({
-                                            name: temporary[key],
-                                            isArrow: this.picvlistSortValues[0],
-                                            'isNtSelected': false
-                                        });
-                                    } else {
-                                        this.headerItems.push({
-                                            name: temporary[key],
-                                            isArrow: this.picvlistSortValues[1],
-                                            'isNtSelected': true
-                                        });
-                                    }
+                                    this.headerItems.push({
+                                        'nameOfHeader': temporary[key].nameOfHeader,
+                                        'isArrow': temporary[key].isArrow,
+                                        'isNtSelected': temporary[key].isNtSelected,
+                                        'nameOfHeaderApi': temporary[key].nameOfHeaderApi
+                                    });
                                 }
+
                                 this.lstElements = [];
 
                                 var returnedData = JSON.parse(result);
@@ -346,51 +343,63 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
                                 if (returnedData[0].recordForMetadata) {
                                     if (returnedData[0].recordForMetadata.SobjectType) {
-                                        this.headerItems.push({
-                                            nameOfHeader: 'Object Type',
-                                            isArrow: this.picvlistSortValues[2],
-                                            'isNtSelected': true
-                                        });
+                                        var element = {
+                                            'nameOfHeader': 'Object Type',
+                                            'isArrow': false,
+                                            'isNtSelected': true,
+                                            'nameOfHeaderApi': 'SobjectType'
+                                        }
+                                        this.headerItems.push(element);
                                         this.showSobjectType = true;
                                     }
                                     if (returnedData[0].recordForMetadata.MasterLabel) {
-                                        this.headerItems.push({
-                                            nameOfHeader: 'Master Label',
-                                            isArrow: this.picvlistSortValues[2],
-                                            'isNtSelected': true
-                                        });
+                                        var element = {
+                                            'nameOfHeader': 'Master Label',
+                                            'isArrow': false,
+                                            'isNtSelected': true,
+                                            'nameOfHeaderApi': 'MasterLabel'
+                                        }
+                                        this.headerItems.push(element);
                                         this.MasterLabel = true;
                                     }
                                     if (returnedData[0].recordForMetadata.Type) {
-                                        this.headerItems.push({
-                                            nameOfHeader: 'Type',
-                                            isArrow: this.picvlistSortValues[2],
-                                            'isNtSelected': true
-                                        });
+                                        var element = {
+                                            'nameOfHeader': 'Type',
+                                            'isArrow': false,
+                                            'isNtSelected': true,
+                                            'nameOfHeaderApi': 'Type'
+                                        }
+                                        this.headerItems.push(element);
                                         this.showType = true;
                                     }
                                     if (returnedData[0].recordForMetadata.Label) {
-                                        this.headerItems.push({
-                                            nameOfHeader: 'Label',
-                                            isArrow: this.picvlistSortValues[2],
-                                            'isNtSelected': true
-                                        });
+                                        var element = {
+                                            'nameOfHeader': 'Label',
+                                            'isArrow': false,
+                                            'isNtSelected': true,
+                                            'nameOfHeaderApi': 'Label'
+                                        }
+                                        this.headerItems.push(element);
                                         this.showLabel = true;
                                     }
                                     if (returnedData[0].recordForMetadata.isCustom) {
-                                        this.headerItems.push({
-                                            nameOfHeader: 'Custom',
-                                            isArrow: this.picvlistSortValues[2],
-                                            'isNtSelected': true
-                                        });
+                                        var element = {
+                                            'nameOfHeader': 'Custom',
+                                            'isArrow': false,
+                                            'isNtSelected': true,
+                                            'nameOfHeaderApi': 'isCustom'
+                                        }
+                                        this.headerItems.push(element);
                                         this.showisCustom = true;
                                     }
                                     if (returnedData[0].recordForMetadata.TableEnumOrId) {
-                                        this.headerItems.push({
-                                            nameOfHeader: 'Table Enum Or Id',
-                                            isArrow: this.picvlistSortValues[2],
-                                            'isNtSelected': true
-                                        });
+                                        var element = {
+                                            'nameOfHeader': 'Table Enum Or Id',
+                                            'isArrow': false,
+                                            'isNtSelected': true,
+                                            'nameOfHeaderApi': 'TableEnumOrId'
+                                        }
+                                        this.headerItems.push(element);
                                         this.showTableEnumOrId = true;
                                     }
                                 }
@@ -413,7 +422,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                     this.showTable = false;
                     this.showSpinner = false;
                 }
-
                 const event = new CustomEvent('recordsload', {
                     detail: {
                         page: this.currentpage,
@@ -477,6 +485,8 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     changePicklist(event) {
 
+        this.selectedItem = '';
+        this.isAsc = false;
         this.selectedElement = event.detail.value;
         this.isSearchChangeExecuted = false;
         this.currentpage = 1;
@@ -736,25 +746,72 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     sortHelper(event) {
 
-        var headerItems = this.headerItems;
         var selectedItem = event.target.dataset.name;
+        var isAsc = false;
 
-        for (let i = 0; i < headerItems.length; i++) {
-            if (headerItems[i].name.nameOfHeader === selectedItem) {
-                if (headerItems[i].isNtSelected === true) {
-                    for (let j = 0; j < headerItems.length; j++) {
-                        headerItems[j].isNtSelected = true;
+        for (const key in this.headerItems) {
+            if (this.headerItems[key].nameOfHeaderApi === selectedItem) {
+
+                if (this.headerItems[key].isNtSelected === true) {
+                    for (let j = 0; j < this.headerItems.length; j++) {
+                        this.headerItems[j].isNtSelected = true;
                     }
                 }
-                headerItems[i].isNtSelected = false;
+                this.headerItems[key].isNtSelected = false;
 
-                if (headerItems[i].isArrow.value === false) {
-                    headerItems[i].isArrow.value = true;
+                if (this.headerItems[key].isArrow === false) {
+                    this.headerItems[key].isArrow = true;
+                    isAsc = true;
                 } else {
-                    headerItems[i].isArrow.value = false;
+                    this.headerItems[key].isArrow = false;
+                }
+
+                if (this.isFirstClick === false) {
+                    isAsc = true;
+                    this.isFirstClick = true;
                 }
             }
         }
+        this.selectedItem = selectedItem;
+        this.isAsc = isAsc;
+
+        if (this.showCheckers) {
+            //this.returnDataDebug(event);
+        } else {
+            this.returnDataAfterSort(event);
+        }
 
     }
+
+    returnDataAfterSort(event) {
+
+        getRecordsList({
+            typeOfElement: this.selectedElement,
+            pagenumber: this.currentpage,
+            numberOfRecords: this.totalrecords,
+            pageSize: this.pagesize,
+            searchString: this.searchKey,
+            selectedItem: this.selectedItem,
+            isAsc: this.isAsc
+        })
+            .then(result => {
+                this.lstElements = [];
+                var returnedData = JSON.parse(result);
+                this.prepareDataForDisplaying(returnedData);
+                this.showSpinner = false;
+                this.showTable = this.lstElements.length > 0;
+                this.isDisableReload = !this.showTable;
+                this.error = undefined;
+
+            })
+            .catch(error => {
+                this.error = error;
+                this.lstElements = undefined;
+                this.showSpinner = false;
+            });
+    }
+
+    @api selectedItem = '';
+    @api isAsc = false;
+    @api isFirstClick = false;
 }
