@@ -22,7 +22,6 @@
             </div>
 
             <div class="slds-col slds-size_2-of-12 debug-mode-class">
-                <!-- <lightning-button label="Debug Mode" onclick={changeDebugMode}></lightning-button> -->
                 <div class="slds-form-element">
                     <label class="slds-checkbox_toggle slds-grid">
                         <span class="slds-form-element__label slds-m-bottom_none">Debug mode</span>
@@ -55,27 +54,33 @@
                     <thead>
                         <tr class="slds-text-title_caps">
                             <template for:each={_headerItems} for:item='item' for:index='index'>
-                                <!-- <th scope="col" key={item}> -->
-                                <!-- <div>{item}</div> -->
 
-                                <!-- {item.name.nameOfHeader} -->
+                                <th key={item} class="slds-is-sortable slds-text-title-caps slds-text-link--reset"
+                                    data-name={item.nameOfHeaderApi} onclick={sortHelper} scope="col">
 
-                                <!-- </th> -->
-
-                                <th key={item} class="slds-is-sortable slds-text-title-caps" scope="col"
-                                    onclick={sortHelper}>
-                                    <a href="javascript:void(0);" class="slds-th__action slds-text-link-reset">
-                                        <span class="slds-assistive-text">Sort</span>
-                                        <span class="slds-truncate"
-                                            title={item.name.nameOfHeader}>{item.name.nameOfHeader}</span>
-                                        <template if:true={item.isArrow}>
+                                    <template if:false={item.isNtSelected}>
+                                        <span class="slds-truncate selected-item-class" title={item.nameOfHeader}
+                                            data-name={item.nameOfHeaderApi}>
+                                            {item.nameOfHeader}
+                                        </span>
+                                    </template>
+                                    <template if:true={item.isNtSelected}>
+                                        <span class="slds-truncate" title={item.nameOfHeader}
+                                            data-name={item.nameOfHeaderApi}>
+                                            {item.nameOfHeader}
+                                        </span>
+                                    </template>
+                                    <template if:false={item.isNtSelected}>
+                                        <template if:false={item.isArrow}>
                                             &nbsp; &#9660;
                                         </template>
-                                        <template if:false={item.isArrow}>
+                                        <template if:true={item.isArrow}>
                                             &nbsp; &#9650;
                                         </template>
-                                    </a>
+                                    </template>
+
                                 </th>
+
                             </template>
                         </tr>
                     </thead>

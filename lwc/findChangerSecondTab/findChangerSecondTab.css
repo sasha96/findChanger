@@ -53,3 +53,7 @@
 .bottom-hr-class{
     margin: 0px !important;
 }
+
+.selected-item-class{    
+    color: #6488e3;
+}

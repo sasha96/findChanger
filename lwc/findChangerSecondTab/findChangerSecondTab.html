@@ -16,9 +16,32 @@
                     class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-table_striped cursor-style">
                     <thead>
                         <tr class="slds-text-title_caps">
-                            <template for:each={headerItems} for:item='item' for:index='index'>
-                                <th scope="col" key={item}>
-                                    <div>{item}</div>
+                            <template for:each={_headerItems} for:item='item' for:index='index'>
+                                <th scope="col" key={item.nameOfHeader} onclick={sortHelper}
+                                    data-name={item.nameOfHeaderApi}>
+                                    <!-- <div>{item.nameOfHeader}</div> -->
+
+                                    <template if:false={item.isNtSelected}>
+                                        <span class="slds-truncate selected-item-class" title={item.nameOfHeader}
+                                            data-name={item.nameOfHeaderApi}>
+                                            {item.nameOfHeader}
+                                        </span>
+                                    </template>
+                                    <template if:true={item.isNtSelected}>
+                                        <span class="slds-truncate" title={item.nameOfHeader}
+                                            data-name={item.nameOfHeaderApi}>
+                                            {item.nameOfHeader}
+                                        </span>
+                                    </template>
+                                    <template if:false={item.isNtSelected}>
+                                        <template if:false={item.isArrow}>
+                                            &nbsp; &#9660;
+                                        </template>
+                                        <template if:true={item.isArrow}>
+                                            &nbsp; &#9650;
+                                        </template>
+                                    </template>
+
                                 </th>
                             </template>
                         </tr>

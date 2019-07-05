@@ -69,3 +69,7 @@
     padding-top: 1.5rem;
     padding-left: 4rem;
 }
+
+.selected-item-class{    
+    color: #6488e3;
+}

@@ -11,6 +11,10 @@ export default class FindChangerParent extends NavigationMixin(LightningElement)
 
     @api iscallingback = false;
 
+    checkexist() {
+        this.dispatchEvent(new CustomEvent('checkvaluechange', {}));
+    }
+
     /*@api pagef = 1;
     @api totalrecordsf;
     @api _pagesizef = 10;
