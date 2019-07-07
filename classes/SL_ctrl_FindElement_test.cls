@@ -7,15 +7,29 @@
 
 @isTest
 public  class SL_ctrl_FindElement_test {
-    private static List<String> lstMetadataElements = new List<String>{ 'FlowDefinition', 'FieldSet', 'CustomField', 'RecordType', 
-                                                        'Profile', 'WorkflowRule','CustomTab', 'PermissionSet', 'ValidationRule', 
-                                                        'FlexiPage' }; 
-    private static List<String> lstObjectElements = new List<String>{ 'ApexClass', 'AuraDefinitionBundle', 'ApexPage', 'ApexComponent',  'StaticResource',
-                                                        'ApexTrigger','AssignmentRule', 'CustomPermission', 'EmailTemplate', 'Report', 'Dashboard' }; 
+    
+    @TestSetup
+    static void init(){
+    
+        Profile p = [select id from Profile where name='System Administrator'];
+        User userId = new User();
+            userId.alias = 'utest';
+            userId.email='Unit.Test@unittest.com';
+            userId.emailencodingkey='UTF-8'; 
+            userId.firstName='First29'; 
+            userId.lastname='Last';
+            userId.languagelocalekey='en_US';
+            userId.localesidkey='en_US'; 
+            userId.profileid = p.id;
+            userId.timezonesidkey='Europe/London';
+            userId.username='test29t@ukr.com';
+        insert userId;
+    }
 
     @isTest
     public static void getRecordCount_test(){
         
+        Test.startTest();
         Test.setMock(HttpCalloutMock.class, new MockQueryGenerator());
 
         for (Integer i = 0; i < lstMetadataElements.size(); i++) {
@@ -34,92 +48,8 @@ public  class SL_ctrl_FindElement_test {
         for (Integer i = 0; i < lstObjectCountsReturned.size(); i++) {
             System.assertEquals(lstObjectCountsReturned[i], lstObjectCountsExpected[i]);
         }
-
+        Test.stopTest();
     }
-
-    static User userId {
-        
-        get{
-            if(userId == null){
-                User urr = [SELECT id FROM User WHERE FirstName = 'First29' LIMIT 1];
-                userId = urr;
-            }
-            return userId;
-        } private set;
-    }
-
-    public class MockQueryGenerator implements HttpCalloutMock {        
-        public HTTPResponse respond(HTTPRequest req) {           
-
-            HttpResponse res = new HttpResponse();
-            res.setHeader('Content-Type', 'application/json');
-            Boolean done = false;
-            if(req.getEndpoint().contains('query/01g')) done = true;
-            String respBody = '{"size":398,"totalSize":398,"done":'+done+',"nextRecordsUrl":"/services/data/v43.0/tooling/query/01g1F00000BeHc5QAF-200",';
-                respBody += '"queryLocator":"01g1F00000BeHc5QAF-200","entityTypeName":"AuraDefinition",';
-                respBody += '"records":[{"attributes":{"type":"AuraDefinition","url":"/services/data/v43.0/tooling/sobjects/AuraDefinition/0Ad1O0000004ImXSAU"},';
-                respBody += '"Id":"0Ad1O0000004ImXSAU", "CreatedById":"'+ userId.id + '","LastModifiedById":"'+ userId.id + '","AuraDefinitionBundle":{"attributes":{"type":"AuraDefinitionBundle",';
-                //respBody += '"Id":"0Ad1O0000004ImXSAU","AuraDefinitionBundle":{"attributes":{"type":"AuraDefinitionBundle",';
-                respBody += '"url":"/services/data/v43.0/tooling/sobjects/AuraDefinitionBundle/0Ab1O0000004DzeSAE"},';
-                respBody += '"DeveloperName":"CircularChartWithVariousColors","Id":"0Ab1O0000004DzeSAE"},';
-                respBody += '"DefType":"COMPONENT","Source":""},';
-                respBody += '{"attributes":{"type":"AuraDefinition","url":"/services/data/v43.0/tooling/sobjects/AuraDefinition/0Ad1O000000TQPESA4"},';
-                respBody += '"Id":"0Ad1O000000TQPESA4", "CreatedById":"'+ userId.id + '","LastModifiedById":"'+ userId.id + '","AuraDefinitionBundle":{"attributes":{"type":"AuraDefinitionBundle",';
-               // respBody += '"Id":"0Ad1O000000TQPESA4","AuraDefinitionBundle":{"attributes":{"type":"AuraDefinitionBundle",';
-                respBody += '"url":"/services/data/v43.0/tooling/sobjects/AuraDefinitionBundle/0Ab1O000000TNRJSA4"},';
-                respBody += '"DeveloperName":"cmpHomePageCustomLinks","Id":"0Ab1O000000TNRJSA4"},"DefType":"COMPONENT","Source":""}]}';
-            res.setBody(respBody);
-            res.setStatusCode(200);
-            return res;
-        }
-    }
-
-    private static Integer getobjectSize(String typeOfElement, String searchString){
-        
-        String query = 'SELECT COUNT() FROM ' + typeOfElement;
-
-        if (searchString != null && searchString != '') {  
-            if(typeOfElement == 'Dashboard'){
-                query += ' WHERE title like \'%' + searchString + '%\' '; 
-            }else if(typeOfElement == 'AuraDefinitionBundle' || typeOfElement == 'CustomPermission' || typeOfElement == 'CustomPermission'){
-                query += ' WHERE DeveloperName like \'%' + searchString + '%\' ';  
-            }else{
-                query += ' WHERE Name like \'%' + searchString + '%\' ';  
-            }
-        }  
-        return Database.countQuery(query);  
-    }
-    /*private static Integer getMetadataSize(String typeOfMetadata, String searchString){
-        
-        SL_Tooling tooling = new SL_Tooling(45, true);
-        String query = '';
-
-        switch on typeOfMetadata {
-            when  'FlowDefinition', 'FieldSet', 'CustomField'{
-                query = tooling.query('SELECT Id, DeveloperName FROM ' + typeOfMetadata + ' WHERE DeveloperName LIKE \'%' + searchString + '%\'' );
-            }
-            when  'RecordType', 'Profile', 'WorkflowRule'{
-                query = tooling.query('SELECT Id, Name FROM ' + typeOfMetadata + ' WHERE Name LIKE \'%' + searchString + '%\'');
-            }
-            when  'CustomTab' {
-                query = tooling.query('SELECT Id, DeveloperName FROM ' + typeOfMetadata);
-            }
-            when  'PermissionSet' {
-                query = tooling.query('SELECT Id, Name FROM ' + typeOfMetadata + ' WHERE IsOwnedByProfile = false AND Name LIKE \'%' + searchString + '%\'');
-            }
-            when  'ValidationRule' {
-                query = tooling.query('SELECT Id, ValidationName FROM ' + typeOfMetadata + ' WHERE ValidationName LIKE \'%' + searchString + '%\'' );
-            }
-            when  'FlexiPage' {
-                query = tooling.query('SELECT Id FROM ' + typeOfMetadata  );
-            }
-        }
-
-        Map<String, Object> mapOfObjects = (Map<String, Object>) JSON.deserializeUntyped(query);
-        
-        return (Integer) mapOfObjects.get('size'); 
-    }*/
-
 
     @isTest
     public static void getRecordsListFirstTab_test(){
@@ -219,24 +149,109 @@ public  class SL_ctrl_FindElement_test {
         }                         
     }
 
-    @TestSetup
-    static void init(){
+    @isTest
+    public static void getAllDataDueToPage_test(){
+        
+        list<FindChangerOfPage__mdt> threatMapping = [ SELECT MasterLabel, QualifiedApiName, Apex_Class__c, Apex_Component__c, 
+                                                        Apex_Trigger__c, Aura_Definition_Bundle__c , Apex_Page__c
+                                                        FROM FindChangerOfPage__mdt LIMIT 5];
+        
+        List<String> lstReturnedResult = new List<String>();
+        List<String> expectedResult = new List<String>();
+
+        for (Integer i = 0; i < threatMapping.size(); i++) {
+            lstReturnedResult.add(SL_ctrl_FindElement.getAllDataDueToPage(threatMapping[i].MasterLabel));    
+              
+            String apexClassStr = threatMapping[i].Apex_Class__c;
+            String apexComponentStr = threatMapping[i].Apex_Component__c;
+            String apexTriggerStr = threatMapping[i].Apex_Trigger__c;
+            String auraDefStr = threatMapping[i].Aura_Definition_Bundle__c;
+            String auraApexPage = threatMapping[i].Apex_Page__c;
+            
+            List<String> lstApexClasses = SL_ctrl_FindElement.parseListOfFiels(apexClassStr);
+            List<String> lstApexComponents = SL_ctrl_FindElement.parseListOfFiels(apexComponentStr);
+            List<String> lstApexTriggers = SL_ctrl_FindElement.parseListOfFiels(apexTriggerStr);
+            List<String> lstAuraDefs = SL_ctrl_FindElement.parseListOfFiels(auraDefStr);
+            List<String> lstApexPage = SL_ctrl_FindElement.parseListOfFiels(auraApexPage);
     
-        Profile p = [select id from Profile where name='System Administrator'];
-        User userId = new User();
-            userId.alias = 'utest';
-            userId.email='Unit.Test@unittest.com';
-            userId.emailencodingkey='UTF-8'; 
-            userId.firstName='First29'; 
-            userId.lastname='Last';
-            userId.languagelocalekey='en_US';
-            userId.localesidkey='en_US'; 
-            userId.profileid = p.id;
-            userId.timezonesidkey='Europe/London';
-            userId.username='test29t@ukr.com';
-        insert userId;
-    
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexClass = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexClass', lstApexClasses);
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexComponent = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexComponent', lstApexComponents);
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexTrigger = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexTrigger', lstApexTriggers); 
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperAuraDef = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('AuraDefinitionBundle', lstAuraDefs);
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexPage = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexPage', lstApexPage);
+      
+            List<List<SL_ctrl_FindElement.RecordsWrapper>> lstWrapper = new List<List<SL_ctrl_FindElement.RecordsWrapper>>();
+            lstWrapper.add(wrapperApexClass);
+            lstWrapper.add(wrapperApexComponent);
+            lstWrapper.add(wrapperApexTrigger);
+            lstWrapper.add(wrapperAuraDef);
+            lstWrapper.add(wrapperApexPage);
+        
+            expectedResult.add(JSON.serialize(lstWrapper));
+        }
+
+        for (Integer i = 0; i < lstReturnedResult.size(); i++) {
+            System.assertEquals(lstReturnedResult[i], expectedResult[i]);    
+        }
     }
+
+    @isTest
+    public static void changeRecordFromMetadata_test(){
+        
+        System.runAs(userId){
+            Boolean isNewValue = false;
+            String value = '';
+            List<FindChangerOfPage__mdt> threatMapping = [SELECT MasterLabel, QualifiedApiName, Apex_Class__c, Apex_Component__c, 
+                                                            Apex_Trigger__c, Aura_Definition_Bundle__c , Apex_Page__c, Record_Owner_Id__c
+                                                            FROM FindChangerOfPage__mdt WHERE Record_Owner_Id__c =: UserInfo.getUserId()];
+            
+            System.assertEquals(threatMapping.size(), 0);    
+            for (Integer i = 0; i < lstObjectDebugMode.size(); i++) {
+                if(i == lstObjectDebugMode.size() -1 ){
+                    isNewValue = true;
+                }
+                SL_ctrl_FindElement.changeRecordFromMetadata(lstObjectDebugMode[i], isNewValue, value);
+            } 
+           
+        }   
+    }
+
+    @isTest
+    public static void getRecordOfMetadataForDebugg_test(){
+        Integer pagenumber = 1;
+        Integer numberOfRecords = 2; 
+        Integer pageSize = 5;
+        String searchString = 'a';
+        String selectedItem = 'id';
+        Boolean isAsc = true;
+
+        List<String> returnedResult = new List<String>();
+        List<String> expectedResult = new List<String>();
+        for (Integer i = 0; i < lstObjectDebugMode.size(); i++) {
+            returnedResult.add(SL_ctrl_FindElement.getRecordOfMetadataForDebugg(lstObjectDebugMode[i], pagenumber, pageSize,
+                                                             searchString, selectedItem, isAsc ));
+            SL_ctrl_FindElement.getRecordOfMetadataForDebugg(lstObjectDebugMode[i], pagenumber, pageSize,
+                                                             searchString, '', false );
+            expectedResult.add(SL_ctrl_FindElement.getRecordsList(lstObjectDebugMode[i], pagenumber, pageSize,
+                                                             searchString, (FindChangerOfPage__mdt) JSON.deserialize(SL_ctrl_FindElement.jsonForTest, FindChangerOfPage__mdt.class),
+                                                              selectedItem, isAsc ));                                                
+        } 
+
+        for (Integer i = 0; i < returnedResult.size(); i++) {
+            System.assertEquals(expectedResult[i], returnedResult[i]);
+        }
+    }
+
+    @isTest
+    public static void MetadataWrapper_test(){
+        DateTime myDateTime = DateTime.newInstance(1997, 1, 31, 7, 8, 16);
+        
+        SL_ctrl_FindElement.MetadataWrapper test= new SL_ctrl_FindElement.MetadataWrapper(
+                                                    userId.id, 'test', 'test', 'test', 'test', 
+                                                    'test', 'test', 'test', false, userId.id, 
+                                                    'test', myDateTime, myDateTime, userId.id);
+    }
+
     private static String getListRecordsFirstTab(String typeOfElement, Integer pagenumber, 
                                             Integer pageSize, String searchString,
                                             String selectedItem, Boolean isAsc){
@@ -299,31 +314,63 @@ public  class SL_ctrl_FindElement_test {
         return JSON.serialize(wrapper) ;                                        
     }
 
-/*
-    @isTest
-    public static void getRecordsList_test() {
-
-        String typeOfElement = 'ApexClass';
-        Integer pagenumber = 1;
-        Integer numberOfRecords = 10;
-        Integer pageSize = 10;
-        String searchString = 'test'; 
-
-        String expectedResultClasses = prepareExpectedREsult(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString); 
-        String returnedResultClasses = SL_ctrl_FindElement.getRecordsList(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString);
+    private static Integer getobjectSize(String typeOfElement, String searchString){
         
-        System.assertEquals(expectedResultClasses, returnedResultClasses);
+        String query = 'SELECT COUNT() FROM ' + typeOfElement;
 
-        typeOfElement = 'AuraDefinitionBundle';
-        
-        String expectedResultAuraBundle = prepareExpectedREsult(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString);
-        String returnedResultAura = SL_ctrl_FindElement.getRecordsList(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString);
-
-        System.assertEquals(expectedResultAuraBundle, returnedResultAura);
-        
-        String searchElementsWithoutChacheable = SL_ctrl_FindElement.searchElementsWithoutChacheable(typeOfElement, pagenumber, numberOfRecords, pageSize, searchString);
-        
-        System.assertEquals(searchElementsWithoutChacheable, expectedResultAuraBundle);
+        if (searchString != null && searchString != '') {  
+            if(typeOfElement == 'Dashboard'){
+                query += ' WHERE title like \'%' + searchString + '%\' '; 
+            }else if(typeOfElement == 'AuraDefinitionBundle' || typeOfElement == 'CustomPermission' || typeOfElement == 'CustomPermission'){
+                query += ' WHERE DeveloperName like \'%' + searchString + '%\' ';  
+            }else{
+                query += ' WHERE Name like \'%' + searchString + '%\' ';  
+            }
+        }  
+        return Database.countQuery(query);  
     }
-*/
+
+    static User userId {
+        
+        get{
+            if(userId == null){
+                User urr = [SELECT id FROM User WHERE FirstName = 'First29' LIMIT 1];
+                userId = urr;
+            }
+            return userId;
+        } private set;
+    }
+
+    public class MockQueryGenerator implements HttpCalloutMock {        
+        public HTTPResponse respond(HTTPRequest req) {           
+
+            HttpResponse res = new HttpResponse();
+            res.setHeader('Content-Type', 'application/json');
+            Boolean done = false;
+            if(req.getEndpoint().contains('query/01g')) done = true;
+            String respBody = '{"size":398,"totalSize":398,"done":'+done+',"nextRecordsUrl":"/services/data/v43.0/tooling/query/01g1F00000BeHc5QAF-200",';
+                respBody += '"queryLocator":"01g1F00000BeHc5QAF-200","entityTypeName":"AuraDefinition",';
+                respBody += '"records":[{"attributes":{"type":"AuraDefinition","url":"/services/data/v43.0/tooling/sobjects/AuraDefinition/0Ad1O0000004ImXSAU"},';
+                respBody += '"Id":"0Ad1O0000004ImXSAU", "CreatedById":"'+ userId.id + '","LastModifiedById":"'+ userId.id + '","AuraDefinitionBundle":{"attributes":{"type":"AuraDefinitionBundle",';
+                respBody += '"url":"/services/data/v43.0/tooling/sobjects/AuraDefinitionBundle/0Ab1O0000004DzeSAE"},';
+                respBody += '"DeveloperName":"CircularChartWithVariousColors","Id":"0Ab1O0000004DzeSAE"},';
+                respBody += '"DefType":"COMPONENT","Source":""},';
+                respBody += '{"attributes":{"type":"AuraDefinition","url":"/services/data/v43.0/tooling/sobjects/AuraDefinition/0Ad1O000000TQPESA4"},';
+                respBody += '"Id":"0Ad1O000000TQPESA4", "CreatedById":"'+ userId.id + '","LastModifiedById":"'+ userId.id + '","AuraDefinitionBundle":{"attributes":{"type":"AuraDefinitionBundle",';
+                respBody += '"url":"/services/data/v43.0/tooling/sobjects/AuraDefinitionBundle/0Ab1O000000TNRJSA4"},';
+                respBody += '"DeveloperName":"cmpHomePageCustomLinks","Id":"0Ab1O000000TNRJSA4"},"DefType":"COMPONENT","Source":""}]}';
+            res.setBody(respBody);
+            res.setStatusCode(200);
+            return res;
+        }
+    }
+
+    private static List<String> lstMetadataElements = new List<String>{ 'FlowDefinition', 'FieldSet', 'CustomField', 'RecordType', 
+                                                        'Profile', 'WorkflowRule','CustomTab', 'PermissionSet', 'ValidationRule', 
+                                                        'FlexiPage' }; 
+    
+    private static List<String> lstObjectElements = new List<String>{ 'ApexClass', 'AuraDefinitionBundle', 'ApexPage', 'ApexComponent',  'StaticResource',
+                                                        'ApexTrigger','AssignmentRule', 'CustomPermission', 'EmailTemplate', 'Report', 'Dashboard' }; 
+    
+    private static List<String> lstObjectDebugMode = new List<String>{ 'ApexClass', 'AuraDefinitionBundle', 'ApexPage', 'ApexComponent', 'ApexTrigger'}; 
 }
