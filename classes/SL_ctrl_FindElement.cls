@@ -2,10 +2,10 @@
 *  Class name  :   SL_ctrl_FindElement
 *  Created by  :   Alex Zhurylo
 *  Created on  :   5/17/2019
-*  Description :   Apex class for SL_FindElement lightnign web component
+*  Description :   Apex class for SL_FindElement lightning web component
 **/
 
-public without sharing class SL_ctrl_FindElement {
+public class SL_ctrl_FindElement {
 
     @AuraEnabled(cacheable = true)  
     public static Integer getRecordCount(String typeOfElement, String searchString) {  
@@ -149,59 +149,7 @@ public without sharing class SL_ctrl_FindElement {
             }
         }     
     } 
- 
-    private static String getRecordsList(String typeOfElement, Integer pagenumber, 
-                                        Integer pageSize, String searchString, FindChangerOfPage__mdt record, 
-                                        String selectedItem, Boolean isAsc) {  
-        
-        final String LIMITQUERY = ' LIMIT ' + pageSize + ' OFFSET ' + (pageSize * (pagenumber - 1));  
-        
-        String strAsc = '';
-        String orderBy = '';
-        if (isAsc) {
-            strAsc = ' desc';
-        } else {
-            strAsc = ' asc';
-        }
-
-        SL_Tooling tooling = new SL_Tooling(45, true);
-
-        String REQUIRED_FIELDS = 'Id, LastModifiedDate, LastModifiedById, CreatedDate, CreatedById ';
-        String query = '';
-
-        if(typeOfElement == 'AuraDefinitionBundle'){
-            query = 'SELECT DeveloperName, ' + REQUIRED_FIELDS + 
-                    ' FROM ' +  typeOfElement + 
-                    ' WHERE DeveloperName LIKE \'%'+ searchString  +'%\' ';
-            if(selectedItem != '' && selectedItem != null && selectedItem != 'Name' && selectedItem != 'Title '){
-                orderBy = selectedItem;
-            }else{
-                orderBy = 'DeveloperName';
-            }
-        }else{
-            query = 'SELECT Name,' + REQUIRED_FIELDS + 
-                    ' FROM ' +  typeOfElement + 
-                    ' WHERE Name LIKE \'%'+ searchString  +'%\' ' ;
-            if(selectedItem != '' && selectedItem != null){
-                orderBy = selectedItem;
-            }else{
-                orderBy = 'Name';
-            }
-        }
-        
-        query += ' ORDER BY ' + orderBy +  strAsc;
-
-        query += LIMITQUERY; 
-        
-        List<sObject> lstSearchResultsAfterSOQL = Database.query(query);              
-        List<RecordsWrapper> wrapper = getWrapperOfRecods(typeOfElement, lstSearchResultsAfterSOQL, record);
-        if(wrapper == null){
-            return null; 
-        }else{
-            return JSON.serialize(wrapper);
-        }        
-    } 
-
+    
     @AuraEnabled
     public static String searchElementsWithoutChacheable(String typeOfElement, Integer pagenumber, 
                                                             Integer pageSize, String searchString,
@@ -265,23 +213,20 @@ public without sharing class SL_ctrl_FindElement {
                                                             Integer pageSize, String searchString,
                                                             String selectedItem, Boolean isAsc){
         
-        List<FindChangerOfPage__mdt> threatMapping = [SELECT MasterLabel, QualifiedApiName, Apex_Class__c, Apex_Component__c, 
+        FindChangerOfPage__mdt threatMapping =  Test.isRunningTest() ? (FindChangerOfPage__mdt) JSON.deserialize(jsonForTest, FindChangerOfPage__mdt.class) : [SELECT MasterLabel, QualifiedApiName, Apex_Class__c, Apex_Component__c, 
                                                         Apex_Trigger__c, Aura_Definition_Bundle__c , Apex_Page__c, Record_Owner_Id__c
-                                                        FROM FindChangerOfPage__mdt WHERE Record_Owner_Id__c =: UserInfo.getUserId()];
+                                                        FROM FindChangerOfPage__mdt WHERE Record_Owner_Id__c =: UserInfo.getUserId() LIMIT 1];
         
-        FindChangerOfPage__mdt record = threatMapping[0];
-        
-        return getRecordsList(typeOfElement, pagenumber, pageSize, searchString, record, selectedItem, isAsc);
+        return getRecordsList(typeOfElement, pagenumber, pageSize, searchString, threatMapping, selectedItem, isAsc);
     }
 
     @AuraEnabled 
-   // @future
     public static void createCustomMetadataRecord(){
 
         List<FindChangerOfPage__mdt> threatMapping = [SELECT MasterLabel, QualifiedApiName, Apex_Class__c, Apex_Component__c, 
                                                         Apex_Trigger__c, Aura_Definition_Bundle__c , Apex_Page__c, Record_Owner_Id__c
                                                         FROM FindChangerOfPage__mdt WHERE Record_Owner_Id__c =: UserInfo.getUserId()];
-        System.debug('----------------- ' + threatMapping);
+                                          
         if(threatMapping.size() == 0){
 
             User usr = [SELECT FirstName, LastName FROM user WHERE id =: UserInfo.getUserId()];
@@ -310,11 +255,11 @@ public without sharing class SL_ctrl_FindElement {
 
     @AuraEnabled
     public static void changeRecordFromMetadata(String typeOfElement, Boolean isNewValue, String value){
-         
-        FindChangerOfPage__mdt record = [SELECT MasterLabel, QualifiedApiName, Apex_Class__c, Apex_Component__c, 
+        
+        FindChangerOfPage__mdt record = Test.isRunningTest() ? (FindChangerOfPage__mdt) JSON.deserialize(jsonForTest, FindChangerOfPage__mdt.class) : [SELECT MasterLabel, QualifiedApiName, Apex_Class__c, Apex_Component__c, 
                                                 Apex_Trigger__c, Aura_Definition_Bundle__c , Apex_Page__c, Record_Owner_Id__c
                                                 FROM FindChangerOfPage__mdt WHERE Record_Owner_Id__c =: UserInfo.getUserId() LIMIT 1];
-
+        
         String apiNameOfField = '';
         String lstOfElements = '';
         List<String> lstElementsFromMetadata = new List<String>();
@@ -365,9 +310,63 @@ public without sharing class SL_ctrl_FindElement {
         
         CustomMetadataCallback  callback = new CustomMetadataCallback ();
         
-        Id jobId = Metadata.Operations.enqueueDeployment(mdContainer, callback); 
+        Id jobId = Test.isRunningTest() ? null : Metadata.Operations.enqueueDeployment(mdContainer, callback); 
+    }
+    
+    @testVisible
+    private static String getRecordsList(String typeOfElement, Integer pagenumber, 
+                                        Integer pageSize, String searchString, FindChangerOfPage__mdt record, 
+                                        String selectedItem, Boolean isAsc) {  
+        
+        final String LIMITQUERY = ' LIMIT ' + pageSize + ' OFFSET ' + (pageSize * (pagenumber - 1));  
+        
+        String strAsc = '';
+        String orderBy = '';
+        if (isAsc) {
+            strAsc = ' desc';
+        } else {
+            strAsc = ' asc';
+        }
+
+        SL_Tooling tooling = new SL_Tooling(45, true);
+
+        String REQUIRED_FIELDS = 'Id, LastModifiedDate, LastModifiedById, CreatedDate, CreatedById ';
+        String query = '';
+
+        if(typeOfElement == 'AuraDefinitionBundle'){
+            query = 'SELECT DeveloperName, ' + REQUIRED_FIELDS + 
+                    ' FROM ' +  typeOfElement + 
+                    ' WHERE DeveloperName LIKE \'%'+ searchString  +'%\' ';
+            if(selectedItem != '' && selectedItem != null && selectedItem != 'Name' && selectedItem != 'Title '){
+                orderBy = selectedItem;
+            }else{
+                orderBy = 'DeveloperName';
+            }
+        }else{
+            query = 'SELECT Name,' + REQUIRED_FIELDS + 
+                    ' FROM ' +  typeOfElement + 
+                    ' WHERE Name LIKE \'%'+ searchString  +'%\' ' ;
+            if(selectedItem != '' && selectedItem != null){
+                orderBy = selectedItem;
+            }else{
+                orderBy = 'Name';
+            }
+        }
+        
+        query += ' ORDER BY ' + orderBy +  strAsc;
+
+        query += LIMITQUERY; 
+        
+        List<sObject> lstSearchResultsAfterSOQL = Database.query(query);              
+        List<RecordsWrapper> wrapper = getWrapperOfRecods(typeOfElement, lstSearchResultsAfterSOQL, record);
+        if(wrapper == null){
+            return null; 
+        }else{
+            return JSON.serialize(wrapper);
+        }        
     }
 
+    @testVisible
     private static List<RecordsWrapper> findListOfRecordsIncludedInPage(String typeOfElement, List<String> lstRecords){
         
         if(lstRecords.size() > 0){
@@ -396,6 +395,7 @@ public without sharing class SL_ctrl_FindElement {
         }
     } 
 
+    @testVisible
     private static List<String> parseListOfFiels(String strForParsing){
         
         List<String> lstResult = new List<String>();
@@ -686,7 +686,7 @@ public without sharing class SL_ctrl_FindElement {
         return prepareMataData(returnedResult);
     } 
     
-    public static String prepareMataData(String returnedResult){
+    private static String prepareMataData(String returnedResult){
         
         JSONParser parser = JSON.createParser(returnedResult);
         list<MetadataWrapper> listOfResults = new List<MetadataWrapper>();
@@ -743,23 +743,25 @@ public without sharing class SL_ctrl_FindElement {
         return JSON.serialize(wrapper);
     }
 
+    @testVisible
     public class MetadataWrapper {
-        private String Id {get;set;}
-        private String DeveloperName {get;set;}
-        private String Name {get;set;}
-        private Id LastModifiedById {get;set;}
-        private Id CreatedById {get;set;}
-        private DateTime LastModifiedDate {get;set;}
-        private DateTime CreatedDate {get;set;}
-        private String MasterLabel {get;set;}
-        private String SobjectType {get;set;}
-        private String Type {get;set;}
-        private String Label {get;set;}
-        private Boolean isCustom {get;set;}
-        private String TableEnumOrId {get;set;}
-        private String ValidationName {get;set;}
-
-        private MetadataWrapper(String id, String DeveloperName, String Name, String SobjectType, String MasterLabel,
+        public String Id {get;set;}
+        public String DeveloperName {get;set;}
+        public String Name {get;set;}
+        public Id LastModifiedById {get;set;}
+        public Id CreatedById {get;set;}
+        public DateTime LastModifiedDate {get;set;}
+        public DateTime CreatedDate {get;set;}
+        public String MasterLabel {get;set;}
+        public String SobjectType {get;set;}
+        public String Type {get;set;}
+        public String Label {get;set;}
+        public Boolean isCustom {get;set;}
+        public String TableEnumOrId {get;set;}
+        public String ValidationName {get;set;}
+     
+        @testVisible
+        public MetadataWrapper(String id, String DeveloperName, String Name, String SobjectType, String MasterLabel,
                                 String Type, String Label, String ValidationName, Boolean isCustomId, Id LastModifiedById, 
                                 String TableEnumOrId, DateTime LastModifiedDate, DateTime CreatedDate, Id CreatedById) {
             this.id = id;
@@ -811,7 +813,7 @@ public without sharing class SL_ctrl_FindElement {
         }
 	}
 
-    private class RecordDueToPageWrapper {
+    /*private class RecordDueToPageWrapper {
         private sObject record {get; set;}
 		private Map<String, List<String>> mapApexClasses = new Map<String, List<String>>();
         private Map<String, List<String>> mapAura = new Map<String, List<String>>();
@@ -826,7 +828,7 @@ public without sharing class SL_ctrl_FindElement {
             this.mapApexTriggers.put('Apex trigger', lstApexTriggers);
             this.mapApexComponents.put('Apex component', lstApexComponents);
         }
-	}
+	}*/
 
     private final static Map <String, String> labelsAndValuesOfElementType = new Map <String, String>{  'ApexClass' => 'Apex Class',
                                                                                                         'ApexComponent' => 'Apex Component',
@@ -834,4 +836,8 @@ public without sharing class SL_ctrl_FindElement {
                                                                                                         'AuraDefinitionBundle' => 'Aura Definition Bundle',
                                                                                                         'ApexPage' => 'Apex Page'};
 
+    public final static String jsonForTest = '{"attributes":{"type":"FindChangerOfPage__mdt","url":"/services/data/v46.0/sobjects/FindChangerOfPage__mdt/m03f2000000oMluAAE"},'+
+                                                '"MasterLabel":"FindChangerOfPage.AlexZhurylo","QualifiedApiName":"AlexZhurylo","Apex_Class__c":"AccountController,AccountUtils,SL_ctrl_FindElement,",'+
+                                                '"Apex_Component__c":"SiteHeader,","Apex_Trigger__c":"SiteHeader,","Aura_Definition_Bundle__c":"SiteHeader,","Apex_Page__c":"SiteHeader,","Record_Owner_Id__c":"005f2000008fc9CAAQ","Id":"m03f2000000oMluAAE"}';
+                                            
 }
