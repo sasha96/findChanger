@@ -1,0 +1,26 @@
+<template>
+    <lightning-card>
+        <lightning-tabset>
+
+            <lightning-tab label="Find field changer" title="Can help you find all informations about desired files">
+                <c-find-changer-first-tab preventcallingcallback={iscallingback} currentpage={page}
+                    onrecordsload={handleRecordsLoad} pagesize={pagesize}
+                    onnavigatetorecordviewnewtab={navigateToRecordViewPageInNewTab}
+                    onnavigatetouser={navigateToRecordViewPageByUser} onopenrecord={openRecord}
+                    oncheckexistrecord={checkexist}>
+                </c-find-changer-first-tab>
+                <div class="slds-m-around_medium">
+                    <c-find-changer-pagination onprevious={handlePrevious} onnext={handleNext} onfirst={handleFirst}
+                        onlast={handleLast} currentpage={page} totalrecords={totalrecords} pagesize={pagesize}>
+                    </c-find-changer-pagination>
+                </div>
+            </lightning-tab>
+            <lightning-tab label="Find page changer" title="Can help you find all files that included in selected page">
+                <c-find-changer-second-tab onnavigatetorecordviewnewtab={navigateToRecordViewPageInNewTab}
+                    onnavigatetouser={navigateToRecordViewPageByUser} onopenrecord={openRecord}>
+                </c-find-changer-second-tab>
+            </lightning-tab>
+
+        </lightning-tabset>
+    </lightning-card>
+</template>
