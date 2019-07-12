@@ -1,0 +1,4 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome"
+    controller="SL_ctrl_FindElement" access="global">
+    <c:findChangerParent oncheckvaluechange="{!c.checkExist}" />
+</aura:component>

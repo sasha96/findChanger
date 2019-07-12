@@ -19,8 +19,6 @@
                             <template for:each={_headerItems} for:item='item' for:index='index'>
                                 <th scope="col" key={item.nameOfHeader} onclick={sortHelper}
                                     data-name={item.nameOfHeaderApi}>
-                                    <!-- <div>{item.nameOfHeader}</div> -->
-
                                     <template if:false={item.isNtSelected}>
                                         <span class="slds-truncate selected-item-class" title={item.nameOfHeader}
                                             data-name={item.nameOfHeaderApi}>
@@ -62,7 +60,7 @@
                                         <div>
                                             <lightning-button-icon icon-name="utility:new_window"
                                                 alternative-text="open in new tab" size="small"
-                                                data-id2={sobKey.value.Id} onclick={navigateToRecordViewPageInNewTab}>
+                                                data-id2={sobKey.value.Id} onclick={navigateToRecordInNewTab}>
                                             </lightning-button-icon>
                                         </div>
                                     </div>
@@ -86,7 +84,7 @@
                                             <lightning-button-icon icon-name="utility:new_window"
                                                 alternative-text="open in new tab" size="small"
                                                 data-id2={sobKey.lastModifiedUser.Id}
-                                                onclick={navigateToRecordViewPageInNewTab}>
+                                                onclick={navigateToRecordInNewTab}>
                                             </lightning-button-icon>
                                         </div>
                                     </div>
@@ -104,8 +102,7 @@
                                         </a>
                                         <lightning-button-icon icon-name="utility:new_window"
                                             alternative-text="open in new tab" size="small"
-                                            data-id2={sobKey.lastCrearedUser.Id}
-                                            onclick={navigateToRecordViewPageInNewTab}>
+                                            data-id2={sobKey.lastCrearedUser.Id} onclick={navigateToRecordInNewTab}>
                                         </lightning-button-icon>
                                     </div>
                                 </th>
@@ -170,7 +167,7 @@
                 </div>
                 <div class="user-id-class">
                     <lightning-button-icon icon-name="utility:new_window" alternative-text="open in new tab"
-                        size="small" data-id2={userId} onclick={navigateToRecordViewPageInNewTab}>
+                        size="small" data-id2={userId} onclick={navigateToRecordInNewTab}>
                     </lightning-button-icon>
                 </div>
             </div>

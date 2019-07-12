@@ -3,20 +3,25 @@ public class SL_Tooling_Test {
     
     @isTest
     static void test_query() {        
+       
         SL_Tooling tooling = new SL_Tooling(43, true);
         Test.setMock(HttpCalloutMock.class, new MockQueryGenerator());
         String result = tooling.query('test query');
         System.assertNotEquals(null, result);
+
     }
     @isTest
     static void test_queryNextRecordsUrl() {        
+        
         SL_Tooling tooling = new SL_Tooling(43, true);
         Test.setMock(HttpCalloutMock.class, new MockQueryGenerator());
         String result = tooling.queryNextRecordsUrl('test query');
         System.assertNotEquals(null, result);
+
     }
     
     public class MockQueryGenerator implements HttpCalloutMock {        
+       
         public HTTPResponse respond(HTTPRequest req) {                     
             HttpResponse res = new HttpResponse();
             res.setHeader('Content-Type', 'application/json');
@@ -37,6 +42,7 @@ public class SL_Tooling_Test {
             res.setStatusCode(200);
             return res;
         }
+        
     }
 
 }

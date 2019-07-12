@@ -1,6 +1,5 @@
 <template>
 
-
     <lightning-card title="Find Element" icon-name="standard:search">
 
         <div class="slds-grid slds-gutters">
@@ -15,11 +14,20 @@
                 </lightning-input>
             </div>
 
-            <div class="slds-col slds-size_1-of-12 reload-button-class">
-                <lightning-button-icon icon-name="standard:loop" alternative-text="refresh data" size="middle"
-                    onclick={refreshData} disabled={isDisableReload}>
-                </lightning-button-icon>
+            <div class="slds-col slds-size_1-of-12 reload-button-class" style="width: 8rem;">
+                <template if:false={showCheckers}>
+                    <lightning-button-icon icon-name="standard:loop" alternative-text="refresh data" size="middle"
+                        onclick={refreshData} disabled={isDisableReload}>
+                    </lightning-button-icon>
+                </template>
+                <template if:true={showCheckers}>
+                    <lightning-input checked={isSendEmail} onchange={handleSendEmail} type="checkbox"
+                        label="Send email message" name="input1"
+                        placeholder="This is possibility sent you email message if at least one of your debug item has been changed">
+                    </lightning-input>
+                </template>
             </div>
+
 
             <div class="slds-col slds-size_2-of-12 debug-mode-class">
                 <div class="slds-form-element">

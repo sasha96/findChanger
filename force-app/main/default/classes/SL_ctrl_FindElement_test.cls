@@ -6,7 +6,7 @@
 **/
 
 @isTest
-public  class SL_ctrl_FindElement_test {
+public  class SL_ctrl_FindElement_test { 
     
     /*   init method
 	* 1) Create User with Profile = 'System Admin'
@@ -202,7 +202,7 @@ public  class SL_ctrl_FindElement_test {
         List<String> expectedResult = new List<String>();
 
         for (Integer i = 0; i < threatMapping.size(); i++) {
-            lstReturnedResult.add(SL_ctrl_FindElement.getAllDataDueToPage(threatMapping[i].MasterLabel));    
+            lstReturnedResult.add(SL_ctrl_FindElement.getAllDataDueToPage(threatMapping[i].MasterLabel, null));    
               
             String apexClassStr = threatMapping[i].Apex_Class__c;
             String apexComponentStr = threatMapping[i].Apex_Component__c;
@@ -216,11 +216,11 @@ public  class SL_ctrl_FindElement_test {
             List<String> lstAuraDefs = SL_ctrl_FindElement.parseListOfFiels(auraDefStr);
             List<String> lstApexPage = SL_ctrl_FindElement.parseListOfFiels(auraApexPage);
     
-            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexClass = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexClass', lstApexClasses);
-            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexComponent = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexComponent', lstApexComponents);
-            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexTrigger = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexTrigger', lstApexTriggers); 
-            List<SL_ctrl_FindElement.RecordsWrapper> wrapperAuraDef = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('AuraDefinitionBundle', lstAuraDefs);
-            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexPage = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexPage', lstApexPage);
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexClass = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexClass', lstApexClasses, null, null);
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexComponent = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexComponent', lstApexComponents, null, null);
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexTrigger = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexTrigger', lstApexTriggers, null, null);
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperAuraDef = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('AuraDefinitionBundle', lstAuraDefs, null, null);
+            List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexPage = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexPage', lstApexPage, null, null);
       
             List<List<SL_ctrl_FindElement.RecordsWrapper>> lstWrapper = new List<List<SL_ctrl_FindElement.RecordsWrapper>>();
             lstWrapper.add(wrapperApexClass);
@@ -262,6 +262,26 @@ public  class SL_ctrl_FindElement_test {
            
         }   
     }
+    
+
+
+    @isTest
+    public static void getRecordMetadataForSendMessage_test(){
+        System.runAs(userId){
+            System.assertNotEquals(SL_ctrl_FindElement.getRecordMetadataForSendMessage(), null); 
+        }   
+    }
+
+    @isTest
+    public static void updateRecordMetadataForSendMessage_test(){
+        System.runAs(userId){
+            SL_ctrl_FindElement.updateRecordMetadataForSendMessage(false);
+        }   
+    }
+
+
+
+
 
     /*   getRecordOfMetadataForDebugg_test
     * 1) Create default parameters;

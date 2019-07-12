@@ -207,7 +207,7 @@ public class SL_ctrl_FindElement {
     * @example param :   pageName = 'name of custom page'
     */
     @AuraEnabled
-    public static String getAllDataDueToPage(String pageName){
+    public static String getAllDataDueToPage(String pageName, Date dataModified){
         
         List<String> allPages = new List<String>();
         
@@ -225,20 +225,36 @@ public class SL_ctrl_FindElement {
         List<String> lstApexTriggers = parseListOfFiels(apexTriggerStr);
         List<String> lstAuraDefs = parseListOfFiels(auraDefStr);
         List<String> lstApexPage = parseListOfFiels(auraApexPage);
-   
-        List<RecordsWrapper> wrapperApexClass = findListOfRecordsIncludedInPage('ApexClass', lstApexClasses);
-        List<RecordsWrapper> wrapperApexComponent = findListOfRecordsIncludedInPage('ApexComponent', lstApexComponents);
-        List<RecordsWrapper> wrapperApexTrigger = findListOfRecordsIncludedInPage('ApexTrigger', lstApexTriggers); 
-        List<RecordsWrapper> wrapperAuraDef = findListOfRecordsIncludedInPage('AuraDefinitionBundle', lstAuraDefs);
-        List<RecordsWrapper> wrapperApexPage = findListOfRecordsIncludedInPage('ApexPage', lstApexPage);
+
+        Date lastChangeData = null;
+        Date myDate2 = null;
+        if( dataModified != null){
+            lastChangeData = dataModified;
+            myDate2 = lastChangeData.addDays(1);
+        }
+        List<RecordsWrapper> wrapperApexClass = findListOfRecordsIncludedInPage('ApexClass', lstApexClasses, lastChangeData, myDate2);
+        List<RecordsWrapper> wrapperApexComponent = findListOfRecordsIncludedInPage('ApexComponent', lstApexComponents, lastChangeData, myDate2);
+        List<RecordsWrapper> wrapperApexTrigger = findListOfRecordsIncludedInPage('ApexTrigger', lstApexTriggers, lastChangeData, myDate2);
+        List<RecordsWrapper> wrapperAuraDef = findListOfRecordsIncludedInPage('AuraDefinitionBundle', lstAuraDefs, lastChangeData, myDate2);
+        List<RecordsWrapper> wrapperApexPage = findListOfRecordsIncludedInPage('ApexPage', lstApexPage, lastChangeData, myDate2);
     
         List<List<RecordsWrapper>> lstWrapper = new List<List<RecordsWrapper>>();
-        lstWrapper.add(wrapperApexClass);
-        lstWrapper.add(wrapperApexComponent);
-        lstWrapper.add(wrapperApexTrigger);
-        lstWrapper.add(wrapperAuraDef);
-        lstWrapper.add(wrapperApexPage);
-        
+        if(wrapperApexClass != null && wrapperApexClass.size() > 0){
+            lstWrapper.add(wrapperApexClass);
+        }
+        if(wrapperApexComponent != null && wrapperApexComponent.size() > 0){
+            lstWrapper.add(wrapperApexComponent);
+        }
+        if(wrapperApexTrigger != null && wrapperApexTrigger.size() > 0){
+            lstWrapper.add(wrapperApexTrigger);
+        }
+        if(wrapperAuraDef != null && wrapperAuraDef.size() > 0){
+            lstWrapper.add(wrapperAuraDef);
+        }
+        if(wrapperApexPage != null && wrapperApexPage.size() > 0){
+            lstWrapper.add(wrapperApexPage);
+        }
+                
         return JSON.serialize(lstWrapper);
     }
 
@@ -366,6 +382,37 @@ public class SL_ctrl_FindElement {
         Id jobId = Test.isRunningTest() ? null : Metadata.Operations.enqueueDeployment(mdContainer, callback); 
     }
     
+    @AuraEnabled
+    public static String getRecordMetadataForSendMessage(){
+        FindChangerOfPage__mdt record =  Test.isRunningTest() ?  (FindChangerOfPage__mdt) JSON.deserialize(jsonForTest, FindChangerOfPage__mdt.class) : 
+                                                [SELECT Send_email__c FROM FindChangerOfPage__mdt 
+                                                WHERE Record_Owner_Id__c =: UserInfo.getUserId() LIMIT 1];
+        return JSON.serialize(record.Send_email__c);
+    }
+
+    @AuraEnabled
+    public static void updateRecordMetadataForSendMessage(Boolean value){
+        FindChangerOfPage__mdt record =  Test.isRunningTest() ?  (FindChangerOfPage__mdt) JSON.deserialize(jsonForTest, FindChangerOfPage__mdt.class) : 
+                                                [SELECT MasterLabel, Send_email__c FROM FindChangerOfPage__mdt 
+                                                WHERE Record_Owner_Id__c =: UserInfo.getUserId() LIMIT 1];
+        
+        Metadata.CustomMetadata customMetadata =  new Metadata.CustomMetadata();
+        customMetadata.fullName = record.MasterLabel;
+        customMetadata.label = record.MasterLabel;
+        
+        Metadata.CustomMetadataValue customField = new Metadata.CustomMetadataValue();
+        customField.field = 'Send_email__c';
+        customField.value = value;
+        customMetadata.values.add(customField);
+        
+        Metadata.DeployContainer mdContainer = new Metadata.DeployContainer();
+        mdContainer.addMetadata(customMetadata);
+        
+        CustomMetadataCallback  callback = new CustomMetadataCallback ();
+        
+        Id jobId = Test.isRunningTest() ? null : Metadata.Operations.enqueueDeployment(mdContainer, callback);   
+    }
+
     /*
     * @MethodName    :   getRecordsList
     * @Description   :   Finds all records due to parameters and serialize it
@@ -435,7 +482,7 @@ public class SL_ctrl_FindElement {
     * @example param :   typeOfElement = 'ApexClass', lstRecords='new List<String>()'
     */
     @testVisible
-    private static List<RecordsWrapper> findListOfRecordsIncludedInPage(String typeOfElement, List<String> lstRecords){
+    private static List<RecordsWrapper> findListOfRecordsIncludedInPage(String typeOfElement, List<String> lstRecords, Date lastChangeData, Date myDate2){
         
         if(lstRecords.size() > 0){
             String REQUIRED_FIELDS = 'Id, LastModifiedDate, LastModifiedById, CreatedDate, CreatedById ';
@@ -444,13 +491,23 @@ public class SL_ctrl_FindElement {
             if(typeOfElement == 'AuraDefinitionBundle'){
                 query = 'SELECT DeveloperName, ' + REQUIRED_FIELDS + 
                             ' FROM ' +  typeOfElement + 
-                            ' WHERE DeveloperName IN : lstRecords ' + 
-                            ' ORDER BY DeveloperName';
+                            ' WHERE DeveloperName IN : lstRecords ' ; 
+                           
+                if(lastChangeData != null){
+                    query += ' AND LastModifiedDate >= :lastChangeData AND LastModifiedDate <= :myDate2';
+                }
+
+                query +=  ' ORDER BY DeveloperName';
             }else{
                 query = 'SELECT Name,' + REQUIRED_FIELDS + 
                         ' FROM ' +  typeOfElement + 
-                        ' WHERE Name IN : lstRecords '+
-                        ' ORDER BY Name';
+                        ' WHERE Name IN : lstRecords ';
+                
+                if(lastChangeData != null){
+                    query += ' AND LastModifiedDate >= :lastChangeData AND LastModifiedDate <= :myDate2' ;
+                }
+
+                query +=  ' ORDER BY Name';
             }
             
             List<sObject> lstSearchResultsAfterSOQL = Database.query(query);
@@ -956,15 +1013,15 @@ public class SL_ctrl_FindElement {
     * @Description   :   Inner class for objects
     */
     @testVisible
-    private class RecordsWrapper {
-        private sObject record {get; set;}
-		private sObject lastModifiedUser {get; set;}
-        private sObject lastCrearedUser {get; set;}
-        private Object recordForMetadata {get; set;}
-        private String typeOfElement {get;set;}
-        private Boolean isChecked {get; set;}
+    public class RecordsWrapper {
+        public sObject record {get; set;}
+		public sObject lastModifiedUser {get; set;}
+        public sObject lastCrearedUser {get; set;}
+        public Object recordForMetadata {get; set;}
+        public String typeOfElement {get;set;}
+        public Boolean isChecked {get; set;}
 
-        private RecordsWrapper(sObject record, sObject lastModifiedUser, sObject lastCrearedUser, String typeOfElement) {  
+        public RecordsWrapper(sObject record, sObject lastModifiedUser, sObject lastCrearedUser, String typeOfElement) {  
             this.record = record;   
             this.lastModifiedUser = lastModifiedUser;
             this.lastCrearedUser = lastCrearedUser;
@@ -972,13 +1029,13 @@ public class SL_ctrl_FindElement {
             this.isChecked = false;
         }
 
-        private RecordsWrapper(Object recordForMetadata, sObject lastModifiedUser, sObject lastCrearedUser) {  
+        public RecordsWrapper(Object recordForMetadata, sObject lastModifiedUser, sObject lastCrearedUser) {  
             this.recordForMetadata = recordForMetadata;   
             this.lastModifiedUser = lastModifiedUser;
             this.lastCrearedUser = lastCrearedUser;
         }
 
-        private RecordsWrapper(sObject record, sObject lastModifiedUser, sObject lastCrearedUser, String typeOfElement, Boolean isChecked) {  
+        public RecordsWrapper(sObject record, sObject lastModifiedUser, sObject lastCrearedUser, String typeOfElement, Boolean isChecked) {  
             this.record = record;   
             this.lastModifiedUser = lastModifiedUser;
             this.lastCrearedUser = lastCrearedUser;
@@ -1003,4 +1060,5 @@ public class SL_ctrl_FindElement {
                                                 '"MasterLabel":"FindChangerOfPage.AlexZhurylo","QualifiedApiName":"AlexZhurylo","Apex_Class__c":"AccountController,AccountUtils,SL_ctrl_FindElement,",'+
                                                 '"Apex_Component__c":"SiteHeader,","Apex_Trigger__c":"SiteHeader,","Aura_Definition_Bundle__c":"SiteHeader,","Apex_Page__c":"SiteHeader,","Record_Owner_Id__c":"005f2000008fc9CAAQ","Id":"m03f2000000oMluAAE"}';
                                             
+
 }

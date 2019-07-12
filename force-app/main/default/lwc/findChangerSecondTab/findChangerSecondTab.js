@@ -1,4 +1,4 @@
-import { LightningElement, track, wire, api } from "lwc";
+import { LightningElement, track, api } from "lwc";
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import strUserId from '@salesforce/user/Id';
@@ -6,23 +6,21 @@ import strUserId from '@salesforce/user/Id';
 import getAllPages from "@salesforce/apex/SL_ctrl_FindElement.getAllPages";
 import getAllDataDueToPage from "@salesforce/apex/SL_ctrl_FindElement.getAllDataDueToPage";
 
+import { navigateToRecordViewPageInNewTab } from 'c/findChangerHelper';
+import { formatDatehelper } from 'c/findChangerHelper';
+
 export default class FindChangerSecondTab extends NavigationMixin(LightningElement) {
 
     @track lstElements = [];
     @track defvalue = "";
     @track _typesList = [];
     @track userId = strUserId;
+    @track _headerItems = [];
+
     @api showTable = false;
     @api showSpinner = false;
     @api selectedPage = "";
     @api headerItemsInitial = [
-        /*   "Element type",
-           "Record Id",
-           "Name",
-           "Last Modified Date",
-           "Last Modified By",
-           "Created Date",
-           "Created By"*/
         {
             'nameOfHeader': 'Element type',
             'isNtSelected': true,
@@ -60,8 +58,6 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
         },
     ];
 
-    @track _headerItems = [];
-
     @api
     get headerItems() {
         return this._headerItems;
@@ -71,13 +67,17 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
         this._headerItems = value;
     }
 
-    renderedCallback() {
-        console.log('here1');
-    }
     connectedCallback() {
+        this.initialize();
+    }
 
-        console.log('here2');
+    initialize() {
+
+        this.showSpinner = true;
+        this.showTable = false;
+
         var temporary = this.headerItemsInitial;
+
         this._headerItems = [];
         for (var key in temporary) {
             this.headerItems.push({
@@ -87,8 +87,6 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
                 'nameOfHeaderApi': temporary[key].nameOfHeaderApi
             });
         }
-        console.log(this.headerItems);
-        this.showSpinner = true;
 
         getAllPages()
             .then(result => {
@@ -109,33 +107,51 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
 
             })
             .catch(error => {
-
+                const toastEvnt = new ShowToastEvent({
+                    title: 'Error',
+                    message: 'Error happend when you tried to retrieve all pages from custom metadata',
+                    variant: 'error',
+                    duration: 5000
+                });
+                this.dispatchEvent(toastEvnt);
             });
+
     }
 
     changePicklist(event) {
+
         this.showSpinner = true;
+        this.showTable = false;
         this.selectedPage = event.detail.value;
         this.returnData(this.selectedPage);
+
     }
 
     returnData(pageName) {
 
         getAllDataDueToPage({
-            pageName: pageName
+            pageName: pageName,
+            dataModified: null
         }).then(result => {
             this.lstElements = [];
-            this.showTable = false;
+
             var returnedData = JSON.parse(result);
             this.prepareDataForDisplaying(returnedData);
 
             this.showTable = this.lstElements.length > 0;
         })
             .catch(error => {
-
+                const toastEvnt = new ShowToastEvent({
+                    title: 'Error',
+                    message: 'Error happend when you change picklist value and tried to retrieve all pages from custom metadata',
+                    variant: 'error',
+                    duration: 5000
+                });
+                this.dispatchEvent(toastEvnt);
             });
 
         this.showSpinner = false;
+
     }
 
     prepareDataForDisplaying(returnedData) {
@@ -164,16 +180,7 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
     }
 
     formatDate(date) {
-
-        var hours = date.getHours();
-        var minutes = date.getMinutes();
-        var ampm = hours >= 12 ? 'pm' : 'am';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        var strTime = hours + ':' + minutes + ' ' + ampm;
-        return date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear() + "  " + strTime;
-
+        return formatDatehelper(date);
     }
 
     navigateToRecordViewPageByUser(event) {
@@ -183,16 +190,11 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
                 userId: event.target.dataset.id
             }
         }));
+
     }
 
-    navigateToRecordViewPageInNewTab(event) {
-
-        this.dispatchEvent(new CustomEvent('navigatetorecordviewnewtab', {
-            detail: {
-                recordId: event.target.dataset.id2
-            }
-        }));
-
+    navigateToRecordInNewTab(event) {
+        navigateToRecordViewPageInNewTab(event.target.dataset.id2);
     }
 
     openRecord(event) {

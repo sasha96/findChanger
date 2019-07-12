@@ -7,36 +7,35 @@ public class SL_Tooling {
     private Boolean logRequests;
     
     public SL_Tooling(Integer apiVersion, boolean logRequests) {
+        
         if(apiVersion == null) apiVersion = 43;
         this.logRequests = logRequests;
         if(logRequests == null) this.logRequests = false;
         //baseUrl = URL.getSalesforceBaseUrl().toExternalForm() + '/services/data/v' + apiVersion + '.0/tooling/';
         baseUrl = 'callout:CallMeBack/services/data/v45.0/tooling/';
+        
     }
     
     private HTTPRequest getReqByRelativePath (String relativePath, String method) {        
+        
         if(relativePath.startsWith('/')) relativePath = relativePath.substring(1);
         return getReqByFullPath(baseUrl + relativePath, method);
+
     }
     
     private HTTPRequest getReqByFullPath(String fullPath, String method) {
         
-        /*HTTPRequest req = new HTTPRequest();
-        req.setEndpoint(fullPath);
-        req.setMethod(method);
-        req.setHeader('Authorization', 'Bearer ' + UserInfo.getSessionId());
-        //req.setHeader('Authorization', 'OAuth ' + UserInfo.getSessionId());
-        req.setHeader('Content-Type', 'application/json');*/
-      
         HttpRequest req = new HttpRequest();
         req.setEndpoint(fullPath);
         req.setMethod('GET');
         req.setHeader('Content-Type', 'application/json');
         return req;
+
     }
         
     
     private HttpResponse execute(HTTPRequest req) {
+        
         Http h = new Http();
         HttpResponse res = h.send(req);
         if(logRequests) {
@@ -48,9 +47,11 @@ public class SL_Tooling {
         }
         
         return res;
+
     }
     
     public String query(String query) {
+       
         HTTPRequest req =  getReqByRelativePath('query/?q=' + EncodingUtil.urlEncode(query, 'UTF-8'), 'GET');
         HttpResponse res = execute(req);
         if(res.getStatusCode() == 200) {
@@ -58,8 +59,10 @@ public class SL_Tooling {
         } else {            
         	throw new CalloutException(getErrorMessage(res.getBody()));    
         }
+
     }
     public String queryNextRecordsUrl(String nextRecordsUrl) {
+        
         HTTPRequest req =  getReqByFullPath(URL.getSalesforceBaseUrl().toExternalForm() + nextRecordsUrl, 'GET');
         HttpResponse res = execute(req);
         if(res.getStatusCode() == 200) {
@@ -67,9 +70,11 @@ public class SL_Tooling {
         } else {            
         	throw new CalloutException(getErrorMessage(res.getBody()));    
         }
+
     }
     
     private String getErrorMessage(String errorJSON) {
+        
         if(errorJSON.startsWith('[')) {
             List<Object> aResponse = (List<Object>) JSON.deserializeUntyped(errorJSON);
             if(aResponse.size() > 0) {

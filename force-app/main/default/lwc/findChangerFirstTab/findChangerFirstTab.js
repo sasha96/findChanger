@@ -4,16 +4,20 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 import strUserId from '@salesforce/user/Id';
 
+import { navigateToRecordViewPageInNewTab } from 'c/findChangerHelper';
+import { formatDatehelper } from 'c/findChangerHelper';
+
 import searchElementsWithoutChacheable from "@salesforce/apex/SL_ctrl_FindElement.searchElementsWithoutChacheable";
 import getRecordCount from "@salesforce/apex/SL_ctrl_FindElement.getRecordCount";
 import getRecordsListFirstTab from "@salesforce/apex/SL_ctrl_FindElement.getRecordsListFirstTab";
 import getRecordOfMetadataForDebugg from "@salesforce/apex/SL_ctrl_FindElement.getRecordOfMetadataForDebugg";
 import changeRecordFromMetadata from "@salesforce/apex/SL_ctrl_FindElement.changeRecordFromMetadata";
+import getRecordMetadataForSendMessage from "@salesforce/apex/SL_ctrl_FindElement.getRecordMetadataForSendMessage";
+import updateRecordMetadataForSendMessage from "@salesforce/apex/SL_ctrl_FindElement.updateRecordMetadataForSendMessage";
 
 import { loadStyle } from 'lightning/platformResourceLoader';
 import findchanger from '@salesforce/resourceUrl/findchanger';
 import SystemModstamp from "@salesforce/schema/CaseContactRole.SystemModstamp";
-
 
 export default class FindChangerFirstTab extends NavigationMixin(LightningElement) {
 
@@ -32,14 +36,18 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     @api isOpenCurentTabId = false;
     @api isOpenNewTabId = false;
     @api showCheckers = false;
+    @api selectedItem = '';
+    @api isAsc = false;
+    @api isSetTimeOutValue = false;
+    @api isSendEmail = false;
 
+    @track _headerItems = [];
     @track selectedElement = "ApexClass";
     @track pickListDefValue = "ApexClass";
     @track limitOfRecordsValue = "10";
     @track recordOnPage = "10";
     @track searchValue = "";
     @track searchKey = "";
-    @track error;
     @track userId = strUserId;
     @track lstElements = [];
     @track showTable = false;
@@ -86,8 +94,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             'nameOfHeaderApi': 'CreatedById',
         }
     ]
-
-    @track _headerItems = [];
 
     @track listForDebugging = [
         {
@@ -256,7 +262,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         return this._headerItems;
     }
 
-
     set headerItems(value) {
         this._headerItems = value;
     }
@@ -303,7 +308,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                     if (this.showCheckers) {
                         this.returnDataDebug();
                     } else {
-                        debugger;
                         this.typesList = this.typesListFull;
                         getRecordsListFirstTab({
                             typeOfElement: this.selectedElement,
@@ -326,7 +330,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                                 for (var key in temporary) {
                                     this.headerItems.push({
                                         'nameOfHeader': temporary[key].nameOfHeader,
-                                        'isArrow': false,//temporary[key].isArrow,
+                                        'isArrow': false,
                                         'isNtSelected': temporary[key].isNtSelected,
                                         'nameOfHeaderApi': temporary[key].nameOfHeaderApi
                                     });
@@ -405,11 +409,9 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
                                 this.showTable = this.lstElements.length > 0;
                                 this.isDisableReload = !this.showTable;
-                                this.error = undefined;
 
                             })
                             .catch(error => {
-                                this.error = error;
                                 this.lstElements = undefined;
                                 this.showSpinner = false;
                             });
@@ -432,7 +434,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
             })
             .catch(error => {
-                this.error = error;
+                this.showToastMessage('error', 'Error happend when in initialization method', 'error', 5000);
                 this.totalrecords = undefined;
             });
 
@@ -455,35 +457,14 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                 this.prepareDataForDisplaying(returnedData);
             })
             .catch(error => {
-                this.showError();
-            });
-        this.showSpinner = false;
-
-    }
-
-    refreshData(event) {
-
-        this.showSpinner = true;
-        searchElementsWithoutChacheable({
-            typeOfElement: this.selectedElement,
-            pagenumber: this.currentpage,
-            pageSize: this.pagesize,
-            searchString: this.searchKey
-        })
-            .then(result => {
-                this.lstElements = [];
-                var returnedData = JSON.parse(result);
-                this.prepareDataForDisplaying(returnedData);
-            })
-            .catch(error => {
-                this.showError();
+                this.showToastMessage('error', 'Error happend when you tried to return and prepare data', 'error', 5000);
             });
         this.showSpinner = false;
 
     }
 
     changePicklist(event) {
-        debugger;
+
         this.selectedItem = '';
         this.isAsc = false;
         this.selectedElement = event.detail.value;
@@ -514,6 +495,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             this.searchKey = event.target.value;
             this.currentpage = 1;
         }
+
     }
 
     changeLimitRecordOnPage(event) {
@@ -530,16 +512,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     }
 
     formatDate(date) {
-
-        var hours = date.getHours();
-        var minutes = date.getMinutes();
-        var ampm = hours >= 12 ? 'pm' : 'am';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        var strTime = hours + ':' + minutes + ' ' + ampm;
-        return date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear() + "  " + strTime;
-
+        return formatDatehelper(date);
     }
 
     navigateToRecordViewPageByUser(event) {
@@ -552,13 +525,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
     }
 
     navigateToRecordViewPageInNewTab(event) {
-
-        this.dispatchEvent(new CustomEvent('navigatetorecordviewnewtab', {
-            detail: {
-                recordId: event.target.dataset.id2
-            }
-        }));
-
+        navigateToRecordViewPageInNewTab(event.target.dataset.id2);
     }
 
     openRecord(event) {
@@ -594,20 +561,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                     });
                 }
             }
-        }
-
-    }
-
-    showError() {
-
-        if (this.searchKey.length > 0) {
-            let elementLabel = this.typesList.filter(item => item.value === this.selectedElement)[0].label;
-            const toastEvnt = new ShowToastEvent({
-                title: 'Hint',
-                message: 'There are no ' + elementLabel + ' that contain name ' + this.searchKey,
-                variant: 'warning',
-            });
-            this.dispatchEvent(toastEvnt);
         }
 
     }
@@ -665,21 +618,10 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             value: nameOFElement,
         })
             .then(result => {
-                const toastEvnt = new ShowToastEvent({
-                    title: 'success',
-                    message: 'You successfully added ' + nameOFElement + ' to custom metadata',
-                    variant: 'success',
-                    mode: 'dismissable'
-                });
-                this.dispatchEvent(toastEvnt);
+                this.showToastMessage('success', 'You successfully added ' + nameOFElement + ' to custom metadata', 'success', 3000, 'dismissable');
             })
             .catch(error => {
-                const toastEvnt = new ShowToastEvent({
-                    title: 'error',
-                    message: 'Error happend when you tried to add element from custom metadata',
-                    variant: 'error',
-                });
-                this.dispatchEvent(toastEvnt);
+                this.showToastMessage('error', 'Error happend when you tried to add element from custom metadata', 'error', 5000);
             });
 
     }
@@ -692,23 +634,23 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             value: nameOFElement,
         })
             .then(result => {
-                const toastEvnt = new ShowToastEvent({
-                    title: 'success',
-                    message: 'You successfully removed ' + nameOFElement + ' from custom metadata',
-                    variant: 'success',
-                    mode: 'dismissable'
-                });
-                this.dispatchEvent(toastEvnt);
+                this.showToastMessage('success', 'You successfully removed ' + nameOFElement + ' from custom metadata', 'success', 3000, 'dismissable');
             })
             .catch(error => {
-                const toastEvnt = new ShowToastEvent({
-                    title: 'error',
-                    message: 'Error happend when you tried to remove element from custom metadata',
-                    variant: 'error',
-                });
-                this.dispatchEvent(toastEvnt);
+                this.showToastMessage('error', 'Error happend when you tried to remove element from custom metadata', 'error', 5000);
             });
 
+    }
+
+    showToastMessage(title, message, variant, duration, mode) {
+        var toastEvnt = new ShowToastEvent({
+            title: title,
+            message: message,
+            variant: variant,
+            duration: duration,
+            mode: mode
+        });
+        this.dispatchEvent(toastEvnt);
     }
 
     changeDebugMode(event) {
@@ -726,6 +668,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             setTimeout(() => {
                 this.showSpinner = false;
                 this.selectedElement = "ApexClass";
+                this.getRecordMetadataForSendMessage();
                 this.returnDataDebug();
 
             }, timeSec);
@@ -734,6 +677,34 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             this.typesList = this.typesListFull;
         }
 
+    }
+
+    getRecordMetadataForSendMessage(event) {
+
+        getRecordMetadataForSendMessage({})
+            .then(result => {
+                var returnedData = JSON.parse(result);
+                this.isSendEmail = returnedData;
+            })
+            .catch(error => {
+                this.showToastMessage('error', 'Error happend when you tried to retrieve metadata', 'error', 5000);
+            });
+
+    }
+
+    handleSendEmail(event) {
+
+        this.isSendEmail = !this.isSendEmail;
+
+        updateRecordMetadataForSendMessage({
+            value: this.isSendEmail,
+        })
+            .then(result => {
+                this.showToastMessage('success', 'You successfully change Send email mode', 'success', 3000, 'dismissable');
+            })
+            .catch(error => {
+                this.showToastMessage('error', 'Error happend when you tried to change send email option', 'error', 5000);
+            });
     }
 
     returnDataDebug(event) {
@@ -754,15 +725,14 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             .then(result => {
 
                 var returnedData = JSON.parse(result);
+
                 this.lstElements = [];
                 this.prepareDataForDisplaying(returnedData);
-                //  setTimeout(() => {
                 this.showSpinner = false;
-                // }, 1000);
 
             })
             .catch(error => {
-                this.showError();
+                this.showToastMessage('error', 'Error happend when you tried to turn on debug mode', 'error', 5000);
             });
 
     }
@@ -790,10 +760,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                     this.headerItems[key].isArrow = false;
                 }
 
-                /*if (this.isFirstClick === false) {
-                    isAsc = true;
-                    this.isFirstClick = true;
-                }*/
             }
         }
         this.selectedItem = selectedItem;
@@ -824,18 +790,13 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                 this.showSpinner = false;
                 this.showTable = this.lstElements.length > 0;
                 this.isDisableReload = !this.showTable;
-                this.error = undefined;
-
             })
             .catch(error => {
-                this.error = error;
+                this.showToastMessage('error', 'Error happend when you tried to return data after sorting', 'error', 5000);
                 this.lstElements = undefined;
                 this.showSpinner = false;
             });
+
     }
 
-    @api selectedItem = '';
-    @api isAsc = false;
-    //@api isFirstClick = false;]
-    @api isSetTimeOutValue = false;
 }
