@@ -263,8 +263,10 @@ public  class SL_ctrl_FindElement_test {
         }   
     }
     
-
-
+    /*   getRecordMetadataForSendMessage_test
+    * 1) Call getRecordMetadataForSendMessage;
+    * 2) Expected result not null;
+	*/
     @isTest
     public static void getRecordMetadataForSendMessage_test(){
         System.runAs(userId){
@@ -272,16 +274,15 @@ public  class SL_ctrl_FindElement_test {
         }   
     }
 
+    /*   updateRecordMetadataForSendMessage_test
+    * 1) Call updateRecordMetadataForSendMessage;
+	*/
     @isTest
     public static void updateRecordMetadataForSendMessage_test(){
         System.runAs(userId){
             SL_ctrl_FindElement.updateRecordMetadataForSendMessage(false);
         }   
     }
-
-
-
-
 
     /*   getRecordOfMetadataForDebugg_test
     * 1) Create default parameters;

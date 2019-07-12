@@ -382,6 +382,10 @@ public class SL_ctrl_FindElement {
         Id jobId = Test.isRunningTest() ? null : Metadata.Operations.enqueueDeployment(mdContainer, callback); 
     }
     
+    /*
+    * @MethodName    :   getRecordMetadataForSendMessage
+    * @Description   :   method return send email option for current user
+    */
     @AuraEnabled
     public static String getRecordMetadataForSendMessage(){
         FindChangerOfPage__mdt record =  Test.isRunningTest() ?  (FindChangerOfPage__mdt) JSON.deserialize(jsonForTest, FindChangerOfPage__mdt.class) : 
@@ -390,6 +394,12 @@ public class SL_ctrl_FindElement {
         return JSON.serialize(record.Send_email__c);
     }
 
+    /*
+    * @MethodName    :   updateRecordMetadataForSendMessage
+    * @Description   :   method update sent email option for current user
+    * @param         :   value
+    * @example param :   value can be true or false
+    */
     @AuraEnabled
     public static void updateRecordMetadataForSendMessage(Boolean value){
         FindChangerOfPage__mdt record =  Test.isRunningTest() ?  (FindChangerOfPage__mdt) JSON.deserialize(jsonForTest, FindChangerOfPage__mdt.class) : 
