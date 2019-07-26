@@ -3,6 +3,7 @@
     <lightning-card title="Find Element" icon-name="standard:search">
 
         <div class="slds-grid slds-gutters">
+
             <div class="slds-col slds-size_3-of-12 padding-left-class">
                 <lightning-combobox label="Select Element" value={pickListDefValue} placeholder="Apex Class"
                     options={typesList} onchange={changePicklist}>
@@ -28,7 +29,6 @@
                 </template>
             </div>
 
-
             <div class="slds-col slds-size_2-of-12 debug-mode-class">
                 <div class="slds-form-element">
                     <label class="slds-checkbox_toggle slds-grid">
@@ -49,21 +49,23 @@
                     onchange={changeLimitRecordOnPage} class="spec-class2">
                 </lightning-combobox>
             </div>
+
         </div>
+
         </br>
 
         <hr class="hr-class">
-        <templete if:false={showSpinner}>
-        </templete>
+
         <templete if:false={showSpinner}>
             <template if:true={showTable}>
+
                 <table
                     class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-table_striped cursor-style">
                     <thead>
                         <tr class="slds-text-title_caps">
                             <template for:each={_headerItems} for:item='item' for:index='index'>
 
-                                <th key={item} class="slds-is-sortable slds-text-title-caps slds-text-link--reset"
+                                <th key={item} class="slds-is-sortable slds-text-title-caps slds-text-link--reset "
                                     data-name={item.nameOfHeaderApi} onclick={sortHelper} scope="col">
 
                                     <template if:false={item.isNtSelected}>
@@ -72,26 +74,36 @@
                                             {item.nameOfHeader}
                                         </span>
                                     </template>
+
                                     <template if:true={item.isNtSelected}>
                                         <span class="slds-truncate" title={item.nameOfHeader}
                                             data-name={item.nameOfHeaderApi}>
                                             {item.nameOfHeader}
                                         </span>
                                     </template>
+
                                     <template if:false={item.isNtSelected}>
                                         <template if:false={item.isArrow}>
-                                            &nbsp; &#9660;
+                                            <span class="header-item-icon-class">
+                                                <lightning-icon icon-name="utility:arrowup" alternative-text="sort"
+                                                    size="xx-small" }>
+                                                </lightning-icon>
+                                            </span>
                                         </template>
                                         <template if:true={item.isArrow}>
-                                            &nbsp; &#9650;
+                                            <span class="header-item-icon-class">
+                                                <lightning-icon icon-name="utility:arrowdown" alternative-text="sort"
+                                                    size="xx-small" }>
+                                                </lightning-icon>
+                                            </span>
                                         </template>
                                     </template>
-
                                 </th>
 
                             </template>
                         </tr>
                     </thead>
+
                     <tbody>
                         <template for:each={lstElements} for:item="sobKey">
                             <tr key={sobKey.value.Id} class="record-class">
@@ -206,6 +218,7 @@
                         </template>
                     </tbody>
                 </table>
+
             </template>
 
             <template if:false={showTable}>
@@ -215,7 +228,9 @@
                     </div>
                 </div>
             </template>
+
         </templete>
+
         <templete if:true={showSpinner}>
             <div>
                 <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>

@@ -73,3 +73,7 @@
 .selected-item-class{    
     color: #6488e3;
 }
+
+.header-item-icon-class{
+    padding-left: 10px;
+}

@@ -1,9 +1,9 @@
-/**
+/*
 *  Batch name  :   SL_batch_FindChanger
 *  Created by  :   Alex Zhurylo
 *  Created on  :   7/12/2019
 *  Description :   batch send emails for users who track their files
-**/
+*/
 global class SL_batch_FindChanger implements Database.Batchable<sObject>, Database.Stateful,Schedulable{
     
     
@@ -62,9 +62,10 @@ global class SL_batch_FindChanger implements Database.Batchable<sObject>, Databa
 
         }
 
-        EmailTemplate et = [SELECT Id, Subject, HtmlValue, body FROM EmailTemplate where DeveloperName =: 'Find_Changer'];
+        EmailTemplate et = [SELECT Id, Subject, BrandTemplateId, HtmlValue, body FROM EmailTemplate where DeveloperName =: 'FindChanger'];
         List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
         
+        Map<Messaging.SingleEmailMessage, List<String>> mapEmailIdAndBodies = new Map<Messaging.SingleEmailMessage, List<String>>();
         for (String nameOfPage : finalMap.keySet()) {
             
             String contactId = '';
@@ -91,7 +92,7 @@ global class SL_batch_FindChanger implements Database.Batchable<sObject>, Databa
                 String idRec = (String) usersList[i].get('id');
                 idRec = idRec.substring(0,idRec.length()-3);
                 if( idRec == contactId){
-                    userName = (String) usersList[i].get('FirstName') + (String) usersList[i].get('LastName');
+                    userName = (String) usersList[i].get('FirstName') + ' ' + (String) usersList[i].get('LastName');
                     userEmail = (String) usersList[i].get('email');
                     break;
                 }
@@ -108,26 +109,54 @@ global class SL_batch_FindChanger implements Database.Batchable<sObject>, Databa
                     
                     changeElements += oneListOfElems[j].typeOfElement + ' has been changed by ' + 
                                       oneListOfElems[j].lastModifiedUser.get('Name') + ' in ' + 
-                                      oneListOfElems[j].record.get('LastModifiedDate') + '.';
+                                      oneListOfElems[j].record.get('LastModifiedDate') + '; ' +'<br/>';
                 }
             }
 
-            String htmlBody = et.HtmlValue;
-                   htmlBody = htmlBody.replace('{!Contact.Name}',userName);
-                   htmlBody = htmlBody.replace('{!nameOfMetadata}', changeElements);
-                   htmlBody = htmlBody.replace('{!nameElemenets}', nameElemenets);
-            
+            List<string> lstValues = new List<String>();
+                lstValues.add(userName);
+                lstValues.add(changeElements);
+                lstValues.add(nameElemenets); 
+            Messaging.reserveSingleEmailCapacity(1);
             Messaging.SingleEmailMessage singleMail = new Messaging.SingleEmailMessage();
                 singleMail.setTemplateId(et.Id);
-                singleMail.setCCAddresses(new list<string> {userEmail});
-                singleMail.setHtmlBody(htmlBody);
-            emails.add(singleMail);    
+                singleMail.setToAddresses(new list<string> {userEmail});
+                singleMail.setUseSignature(false);
+                singleMail.setSaveAsActivity(false);
+                singleMail.setSenderDisplayName('Silverline ');
+                singleMail.setTargetObjectId(UserInfo.getUserId());
+            emails.add(singleMail);  
+            mapEmailIdAndBodies.put(singleMail, lstValues) ; 
         }
+
         
         if(emails.size() > 0){
+            Savepoint sp = Database.setSavepoint();
             Messaging.sendEmail(emails);
-        }                  
-        
+            Database.rollback(sp);
+        }         
+
+        for (Integer i = 0; i < emails.size(); i++) {
+            String htmlBody = emails[i].getHTMLBody();
+            List<String> returnedValues = new List<String>();
+            for(Messaging.SingleEmailMessage idrecord : mapEmailIdAndBodies.keySet()){
+                if(idrecord == emails[i]){
+                    returnedValues = mapEmailIdAndBodies.get(idrecord);
+                }
+            }
+           
+            htmlBody = htmlBody.replace('contactName', returnedValues[0]);
+            returnedValues[1] =  returnedValues[1].substring(0,returnedValues[1].length()-7);
+            htmlBody = htmlBody.replace('nameOfMetadata', returnedValues[1]);
+            htmlBody = htmlBody.replace('nameElemenets', ' ' + returnedValues[2]);
+            emails[i].setHtmlBody(htmlBody);
+        }
+
+        if(emails.size() > 0){
+            Messaging.sendEmail(emails);
+        }
+
+
     }   
 
     global void finish(Database.BatchableContext bc){

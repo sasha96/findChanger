@@ -1,0 +1,17 @@
+.input{
+cursor: context-menu !important;
+autocomplete: off !important;
+aria-autocomplete: off !important;
+}
+
+.slds-input {
+cursor: context-menu !important;
+autocomplete: off !important;
+aria-autocomplete: off !important;
+}
+
+.slds-combobox__input{
+cursor: context-menu !important;
+autocomplete: off !important;
+aria-autocomplete: off !important;
+}

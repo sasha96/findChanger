@@ -223,11 +223,21 @@ public  class SL_ctrl_FindElement_test {
             List<SL_ctrl_FindElement.RecordsWrapper> wrapperApexPage = SL_ctrl_FindElement.findListOfRecordsIncludedInPage('ApexPage', lstApexPage, null, null);
       
             List<List<SL_ctrl_FindElement.RecordsWrapper>> lstWrapper = new List<List<SL_ctrl_FindElement.RecordsWrapper>>();
-            lstWrapper.add(wrapperApexClass);
-            lstWrapper.add(wrapperApexComponent);
-            lstWrapper.add(wrapperApexTrigger);
-            lstWrapper.add(wrapperAuraDef);
-            lstWrapper.add(wrapperApexPage);
+            if(wrapperApexClass != null && wrapperApexClass.size() > 0){
+                lstWrapper.add(wrapperApexClass);
+            }
+            if(wrapperApexComponent != null && wrapperApexComponent.size() > 0){
+                lstWrapper.add(wrapperApexComponent);
+            }
+            if(wrapperApexTrigger != null && wrapperApexTrigger.size() > 0){
+                lstWrapper.add(wrapperApexTrigger);
+            }
+            if(wrapperAuraDef != null && wrapperAuraDef.size() > 0){
+                lstWrapper.add(wrapperAuraDef);
+            }
+            if(wrapperApexPage != null && wrapperApexPage.size() > 0){
+                lstWrapper.add(wrapperApexPage);
+            }
         
             expectedResult.add(JSON.serialize(lstWrapper));
         }

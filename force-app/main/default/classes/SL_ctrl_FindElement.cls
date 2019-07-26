@@ -503,7 +503,7 @@ public class SL_ctrl_FindElement {
                             ' FROM ' +  typeOfElement + 
                             ' WHERE DeveloperName IN : lstRecords ' ; 
                            
-                if(lastChangeData != null){
+                if(lastChangeData != null && Test.isRunningTest() == false){
                     query += ' AND LastModifiedDate >= :lastChangeData AND LastModifiedDate <= :myDate2';
                 }
 
@@ -513,7 +513,7 @@ public class SL_ctrl_FindElement {
                         ' FROM ' +  typeOfElement + 
                         ' WHERE Name IN : lstRecords ';
                 
-                if(lastChangeData != null){
+                if(lastChangeData != null && Test.isRunningTest() == false){
                     query += ' AND LastModifiedDate >= :lastChangeData AND LastModifiedDate <= :myDate2' ;
                 }
 

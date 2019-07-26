@@ -19,6 +19,14 @@ public class SL_Tooling_Test {
         System.assertNotEquals(null, result);
 
     }
+
+    @isTest
+    static void test_exception(){
+        SL_Tooling tooling = new SL_Tooling(43, true);
+        tooling.getErrorMessage('[{"message" : "test query"}]');
+        tooling.getErrorMessage('[{"test" : "test query"}]');
+        tooling.getErrorMessage('');
+    }
     
     public class MockQueryGenerator implements HttpCalloutMock {        
        

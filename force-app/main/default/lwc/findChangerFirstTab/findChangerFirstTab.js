@@ -203,7 +203,6 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             value: "FlexiPage",
             label: "Flexi Page"
         }
-
     ];
 
     @track typesListForDebugMode = [
@@ -254,6 +253,10 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         {
             value: "50",
             label: "50"
+        },
+        {
+            value: "100",
+            label: "100"
         }
     ];
 
@@ -278,10 +281,12 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
         return this.preventcallingcallback;
     }
 
+    /* initialize method */
     renderedCallback() {
         this.returnDataAfterCallBack();
     }
 
+    /* return all data due to criterias */
     returnDataAfterCallBack(event) {
 
         if (this.isSearchChangeExecuted && (this.localCurrentPage === this.currentpage)) {
@@ -308,7 +313,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                     if (this.showCheckers) {
                         this.returnDataDebug();
                     } else {
-                        this.typesList = this.typesListFull;
+                        this.typesList = this.sortListOfElements(this.typesListFull);
                         getRecordsListFirstTab({
                             typeOfElement: this.selectedElement,
                             pagenumber: this.currentpage,
@@ -327,6 +332,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
                                 var temporary = this.headerItemsInitial;
                                 this._headerItems = [];
+
                                 for (var key in temporary) {
                                     this.headerItems.push({
                                         'nameOfHeader': temporary[key].nameOfHeader,
@@ -440,6 +446,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* refresh data due to selected criterias */
     refreshData(event) {
 
         this.showSpinner = true;
@@ -463,6 +470,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* calls when picklist of elemenets is changed */
     changePicklist(event) {
 
         this.selectedItem = '';
@@ -476,7 +484,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             for (var key in temporary) {
                 this.headerItems.push({
                     'nameOfHeader': temporary[key].nameOfHeader,
-                    'isArrow': false,//temporary[key].isArrow,
+                    'isArrow': false,
                     'isNtSelected': temporary[key].isNtSelected,
                     'nameOfHeaderApi': temporary[key].nameOfHeaderApi
                 });
@@ -488,6 +496,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* calls when search input is changed */
     changeSearchElement(event) {
 
         if (this.searchKey !== event.target.value) {
@@ -498,6 +507,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* calls when picklist of limit is changed */
     changeLimitRecordOnPage(event) {
 
         this.limitOfRecordsValue = event.detail.value;
@@ -511,10 +521,12 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* prepare date in corect format */
     formatDate(date) {
         return formatDatehelper(date);
     }
 
+    /* open user */
     navigateToRecordViewPageByUser(event) {
 
         this.dispatchEvent(new CustomEvent('navigatetouser', {
@@ -522,12 +534,15 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                 userId: event.target.dataset.id
             }
         }));
+
     }
 
+    /* open record in new tab */
     navigateToRecordViewPageInNewTab(event) {
         navigateToRecordViewPageInNewTab(event.target.dataset.id2);
     }
 
+    /* open record */
     openRecord(event) {
 
         this.dispatchEvent(new CustomEvent('openrecord', {
@@ -538,6 +553,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* prepare list of data for displaying*/
     prepareDataForDisplaying(returnedData) {
 
         if (returnedData.length > 0) {
@@ -565,6 +581,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* check Avalibility Open Records */
     checkAvalibilityOpenRecords() {
 
         if (this.selectedElement === 'AssignmentRule' || this.selectedElement === 'FlowDefinition' || this.selectedElement === 'RecordType'
@@ -576,13 +593,13 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
         if (this.selectedElement === 'AssignmentRule' || this.selectedElement === 'RecordType') {
             this.isOpenNewTabId = false;
-
         } else {
             this.isOpenNewTabId = true;
         }
 
     }
 
+    /* calls when chaeckbox is changed */
     handleCheckboxChange(event) {
 
         var selectedId = event.target.dataset.id;
@@ -610,6 +627,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* calls when add item to custom metadata record */
     addNewElementInCustomMetadata(event, selectedId, nameOFElement) {
 
         changeRecordFromMetadata({
@@ -626,6 +644,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* calls when remove item to custom metadata record */
     removeNewElementInCustomMetadata(event, selectedId, nameOFElement) {
 
         changeRecordFromMetadata({
@@ -642,7 +661,9 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* show toast message */
     showToastMessage(title, message, variant, duration, mode) {
+
         var toastEvnt = new ShowToastEvent({
             title: title,
             message: message,
@@ -651,8 +672,10 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             mode: mode
         });
         this.dispatchEvent(toastEvnt);
+
     }
 
+    /* calls when change debug mode toggle */
     changeDebugMode(event) {
 
         this.showCheckers = !this.showCheckers;
@@ -665,6 +688,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                 this.dispatchEvent(new CustomEvent('checkexistrecord', {}));
                 timeSec = 3000;
             }
+
             setTimeout(() => {
                 this.showSpinner = false;
                 this.selectedElement = "ApexClass";
@@ -672,13 +696,15 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
                 this.returnDataDebug();
 
             }, timeSec);
+
             this.isSetTimeOutValue = true;
         } else {
-            this.typesList = this.typesListFull;
+            this.typesList = this.sortListOfElements(this.typesListFull);
         }
 
     }
 
+    /* calls when return all metadata records */
     getRecordMetadataForSendMessage(event) {
 
         getRecordMetadataForSendMessage({})
@@ -692,6 +718,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* calls when change sent email checkbox */
     handleSendEmail(event) {
 
         this.isSendEmail = !this.isSendEmail;
@@ -705,8 +732,10 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
             .catch(error => {
                 this.showToastMessage('error', 'Error happend when you tried to change send email option', 'error', 5000);
             });
+
     }
 
+    /* return all metadata records */
     returnDataDebug(event) {
 
         this.showSpinner = true;
@@ -737,6 +766,23 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* sort list of elements */
+    sortListOfElements(lstRecords) {
+
+        var newList = lstRecords.sort(function (a, b) {
+            if (a.label > b.label) {
+                return 1;
+            }
+            if (a.label < b.label) {
+                return -1;
+            }
+            return 0;
+        });
+        return newList;
+
+    }
+
+    /* calls when press sort by header item */
     sortHelper(event) {
 
         var selectedItem = event.target.dataset.name;
@@ -762,6 +808,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
             }
         }
+
         this.selectedItem = selectedItem;
         this.isAsc = isAsc;
 
@@ -773,6 +820,7 @@ export default class FindChangerFirstTab extends NavigationMixin(LightningElemen
 
     }
 
+    /* return data after sorting due to new condition */
     returnDataAfterSort(event) {
 
         getRecordsListFirstTab({

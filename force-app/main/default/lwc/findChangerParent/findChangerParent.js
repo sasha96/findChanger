@@ -20,6 +20,7 @@ export default class FindChangerParent extends NavigationMixin(LightningElement)
         this._pagesize = value;
     }
 
+    /* handle previous button */
     handlePrevious(event) {
 
         if (this.page > 1) {
@@ -29,6 +30,7 @@ export default class FindChangerParent extends NavigationMixin(LightningElement)
 
     }
 
+    /* handle next button */
     handleNext(event) {
 
         if (this.page < this.totalPages) {
@@ -38,6 +40,7 @@ export default class FindChangerParent extends NavigationMixin(LightningElement)
 
     }
 
+    /* handle first button */
     handleFirst(event) {
 
         this.page = 1;
@@ -45,6 +48,7 @@ export default class FindChangerParent extends NavigationMixin(LightningElement)
 
     }
 
+    /* handle last button */
     handleLast(event) {
 
         this.page = this.totalPages;
@@ -52,6 +56,7 @@ export default class FindChangerParent extends NavigationMixin(LightningElement)
 
     }
 
+    /* handle records loading */
     handleRecordsLoad(event) {
 
         this.page = event.detail.page;
@@ -62,10 +67,12 @@ export default class FindChangerParent extends NavigationMixin(LightningElement)
 
     }
 
+    /* handle page changer */
     handlePageChange(event) {
         this.page = event.detail;
     }
 
+    /* navigate to record view */
     navigateToRecordViewPageByUser(event) {
 
         this[NavigationMixin.Navigate]({
@@ -79,6 +86,7 @@ export default class FindChangerParent extends NavigationMixin(LightningElement)
 
     }
 
+    /* open record */
     openRecord(event) {
 
         this[NavigationMixin.Navigate]({

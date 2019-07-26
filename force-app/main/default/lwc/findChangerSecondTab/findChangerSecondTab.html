@@ -12,6 +12,7 @@
 
         <templete if:false={showSpinner}>
             <template if:true={showTable}>
+
                 <table
                     class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered slds-table_striped cursor-style">
                     <thead>
@@ -44,6 +45,7 @@
                             </template>
                         </tr>
                     </thead>
+
                     <tbody>
                         <template for:each={lstElements} for:item="sobKey">
                             <tr key={sobKey.value.Id} class="record-class">
@@ -140,6 +142,7 @@
                         </template>
                     </tbody>
                 </table>
+
             </template>
 
             <template if:false={showTable}>

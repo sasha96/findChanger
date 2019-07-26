@@ -2,7 +2,6 @@ import { LightningElement, track, api } from "lwc";
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import strUserId from '@salesforce/user/Id';
-
 import getAllPages from "@salesforce/apex/SL_ctrl_FindElement.getAllPages";
 import getAllDataDueToPage from "@salesforce/apex/SL_ctrl_FindElement.getAllDataDueToPage";
 
@@ -20,6 +19,7 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
     @api showTable = false;
     @api showSpinner = false;
     @api selectedPage = "";
+
     @api headerItemsInitial = [
         {
             'nameOfHeader': 'Element type',
@@ -71,6 +71,7 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
         this.initialize();
     }
 
+    /* initialize method */
     initialize() {
 
         this.showSpinner = true;
@@ -118,6 +119,7 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
 
     }
 
+    /* calls when change picklist */
     changePicklist(event) {
 
         this.showSpinner = true;
@@ -127,6 +129,7 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
 
     }
 
+    /* return all data */
     returnData(pageName) {
 
         getAllDataDueToPage({
@@ -154,6 +157,7 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
 
     }
 
+    /* prepare data for displaying */
     prepareDataForDisplaying(returnedData) {
 
         for (var key in returnedData) {
@@ -179,10 +183,12 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
 
     }
 
+    /* method formats data */
     formatDate(date) {
         return formatDatehelper(date);
     }
 
+    /* open record */
     navigateToRecordViewPageByUser(event) {
 
         this.dispatchEvent(new CustomEvent('navigatetouser', {
@@ -193,10 +199,12 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
 
     }
 
+    /* open record in new tab*/
     navigateToRecordInNewTab(event) {
         navigateToRecordViewPageInNewTab(event.target.dataset.id2);
     }
 
+    /* open record */
     openRecord(event) {
 
         this.dispatchEvent(new CustomEvent('openrecord', {
@@ -207,6 +215,7 @@ export default class FindChangerSecondTab extends NavigationMixin(LightningEleme
 
     }
 
+    /* method sorts data */
     sortHelper(event) {
 
         var selectedItem = event.target.dataset.name;

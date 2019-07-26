@@ -12,7 +12,7 @@ public class SL_Tooling {
         this.logRequests = logRequests;
         if(logRequests == null) this.logRequests = false;
         //baseUrl = URL.getSalesforceBaseUrl().toExternalForm() + '/services/data/v' + apiVersion + '.0/tooling/';
-        baseUrl = 'callout:CallMeBack/services/data/v45.0/tooling/';
+        baseUrl = 'callout:FindChangerCred/services/data/v45.0/tooling/';
         
     }
     
@@ -73,6 +73,7 @@ public class SL_Tooling {
 
     }
     
+    @testVisible
     private String getErrorMessage(String errorJSON) {
         
         if(errorJSON.startsWith('[')) {
