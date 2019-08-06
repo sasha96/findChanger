@@ -1,0 +1,5 @@
+Hello contactName. 
+We would like to pay your attention that some of the elements you've added to your custom metadata record have been changed. 
+Namely nameOfMetadata in nameElemenets. 
+If you would not like to receive the letters you can switch mode off in debug tab inline the Find Changer component. 
+Please if you have some issues or suggestions contact Alex Zhurylo (oleksandr.zhurylo@silverlinecrm.com)
